@@ -1,5 +1,5 @@
-# Using version 2 for compatibility with newer GoReleaser versions
-version: 2
+# Using version 1 for compatibility with the installed GoReleaser version
+version: 1
 project_name: go-builder-kit
 
 before:

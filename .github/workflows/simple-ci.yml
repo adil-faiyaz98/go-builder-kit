@@ -74,6 +74,9 @@ jobs:
           version: latest
           args: release --clean
         env:
+          # Use GITHUB_TOKEN for authentication
+          # If you're having permission issues, you might need to create a Personal Access Token (PAT)
+          # with repo scope and add it as a secret named GH_PAT
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Go pkg.go.dev

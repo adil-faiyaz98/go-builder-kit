@@ -22,7 +22,7 @@ builds:
     skip: true  # Skip binary builds for the library part
 
 archives:
-  - format: tar.gz
+  - id: default
     name_template: >-
       {{ .ProjectName }}_
       {{- title .Os }}_
@@ -30,15 +30,16 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format: tar.gz
     format_overrides:
-      - goos: windows
-        format: zip
+    - goos: windows
+      format: zip
 
 checksum:
   name_template: 'checksums.txt'
 
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+# Snapshot configuration is now handled differently
+# See https://goreleaser.com/deprecations#snapshotname_template
 
 changelog:
   sort: asc

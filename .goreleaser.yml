@@ -1,5 +1,5 @@
-# Using version 1 for compatibility with older GoReleaser versions
-version: 1
+# Using version 2 for compatibility with newer GoReleaser versions
+version: 2
 project_name: go-builder-kit
 
 before:
@@ -22,6 +22,7 @@ builds:
   - id: library
     skip: true  # Skip binary builds for the library part
 
+# Archives configuration
 archives:
   - id: default
     name_template: >-
@@ -31,16 +32,19 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-    format: tar.gz
+    # Using the new format configuration as per https://goreleaser.com/deprecations/#archivesformat
+    formats: [ 'tar.gz' ]
     format_overrides:
-    - goos: windows
-      format: zip
+      - goos: windows
+        formats: [ 'zip' ]
 
 checksum:
   name_template: 'checksums.txt'
 
-# Snapshot configuration is now handled differently
-# See https://goreleaser.com/deprecations#snapshotname_template
+# Snapshot configuration
+# As per https://goreleaser.com/deprecations/#snapshotname_template
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc

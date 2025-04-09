@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/examples/simple"
 )
 
 func main() {

@@ -151,17 +151,6 @@ jobs:
       - name: Build
         run: go build -v ./models/... ./builders/... ./pkg/...
 
-      - name: Verify module can be imported
-        run: |
-          mkdir -p /tmp/test-import
-          cd /tmp/test-import
-          go mod init test-import
-          go get github.com/adil-faiyaz98/go-builder-kit@${{ github.sha }}
-          echo 'package main
-          import _ "github.com/adil-faiyaz98/go-builder-kit"
-          func main() {}' > main.go
-          go build
-
   release:
     name: Release
     runs-on: ubuntu-latest

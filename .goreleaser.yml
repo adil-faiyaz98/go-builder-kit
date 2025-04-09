@@ -47,6 +47,7 @@ changelog:
 
 release:
   disable: false
+  disable_validation: true
   github:
     owner: adil-faiyaz98
     name: go-builder-kit

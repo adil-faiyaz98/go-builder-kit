@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // CompanyBuilder builds a Company model
 type CompanyBuilder struct {
-	company *models.Company
-	// Custom validation functions
+	company         *models.Company
 	validationFuncs []func(*models.Company) error
 }
 
@@ -18,34 +16,20 @@ type CompanyBuilder struct {
 func NewCompanyBuilder() *CompanyBuilder {
 	return &CompanyBuilder{
 		company: &models.Company{
-			ID: "",
-			Name: "",
-			Industry: "",
+			Name:        "",
+			Industry:    "",
 			Description: "",
-			Founded: "",
-			Website: "",
-			Address: nil,
-			Location: nil,
-			Size: "",
-			Revenue: "",
-			Public: false,
+			Founded:     "",
+			Website:     "",
+			Address:     nil,
+			Location:    nil,
+			Size:        "",
+			Revenue:     "",
+			Public:      false,
 			StockSymbol: "",
-			Departments: []*models.Department{},
 		},
 		validationFuncs: []func(*models.Company) error{},
 	}
-}
-
-// NewCompanyBuilderWithDefaults creates a new CompanyBuilder with sensible defaults
-func NewCompanyBuilderWithDefaults() *CompanyBuilder {
-	builder := NewCompanyBuilder()
-	// Add default values here if needed
-	return builder
-}
-// WithID sets the ID
-func (b *CompanyBuilder) WithID(iD string) *CompanyBuilder {
-	b.company.ID = iD
-	return b
 }
 
 // WithName sets the Name
@@ -80,15 +64,15 @@ func (b *CompanyBuilder) WithWebsite(website string) *CompanyBuilder {
 
 // WithAddress sets the Address
 func (b *CompanyBuilder) WithAddress(address *AddressBuilder) *CompanyBuilder {
-	// Handle nested pointer
-	b.company.Address = address.BuildPtr()
+	builtValue := address.Build().(*models.Address)
+	b.company.Address = builtValue
 	return b
 }
 
 // WithLocation sets the Location
 func (b *CompanyBuilder) WithLocation(location *AddressBuilder) *CompanyBuilder {
-	// Handle nested pointer
-	b.company.Location = location.BuildPtr()
+	builtValue := location.Build().(*models.Address)
+	b.company.Location = builtValue
 	return b
 }
 
@@ -116,19 +100,6 @@ func (b *CompanyBuilder) WithStockSymbol(stockSymbol string) *CompanyBuilder {
 	return b
 }
 
-// WithDepartments sets the Departments
-func (b *CompanyBuilder) WithDepartments(departments *DepartmentBuilder) *CompanyBuilder {
-	// Ensure the slice is initialized
-	if b.company.Departments == nil {
-		b.company.Departments = []*models.Department{}
-	}
-	// Handle nested slice element
-	builtValue := departments.Build().(*models.Department)
-	b.company.Departments = append(b.company.Departments, builtValue)
-	return b
-}
-
-
 // WithValidation adds a custom validation function
 func (b *CompanyBuilder) WithValidation(validationFunc func(*models.Company) error) *CompanyBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -136,7 +107,7 @@ func (b *CompanyBuilder) WithValidation(validationFunc func(*models.Company) err
 }
 
 // Build builds the Company
-func (b *CompanyBuilder) Build() interface{} {
+func (b *CompanyBuilder) Build() any {
 	return b.company
 }
 
@@ -152,15 +123,13 @@ func (b *CompanyBuilder) BuildAndValidate() (*models.Company, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(company); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return company, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(company).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return company, err
-		}
+	// Run model's Validate method
+	if err := company.Validate(); err != nil {
+		return company, err
 	}
 
 	return company, nil
@@ -168,18 +137,18 @@ func (b *CompanyBuilder) BuildAndValidate() (*models.Company, error) {
 
 // MustBuild builds the Company and panics if validation fails
 func (b *CompanyBuilder) MustBuild() *models.Company {
-	model, err := b.BuildAndValidate()
+	company, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Company validation failed: %s", err.Error()))
 	}
-	return model
+	return company
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the CompanyBuilder
 func (b *CompanyBuilder) Clone() *CompanyBuilder {
 	clonedCompany := *b.company
 	return &CompanyBuilder{
-		company: &clonedCompany,
+		company:         &clonedCompany,
 		validationFuncs: append([]func(*models.Company) error{}, b.validationFuncs...),
 	}
 }

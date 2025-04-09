@@ -61,6 +61,11 @@ func (e *Employment) Validate() error {
 		}
 	}
 
+	// Validate current job should not have end date
+	if e.IsCurrent && e.EndDate != "" {
+		errors = append(errors, "EndDate cannot be set for current job")
+	}
+
 	// Validate Salary
 	if e.Salary < 0 {
 		errors = append(errors, "Salary cannot be negative")

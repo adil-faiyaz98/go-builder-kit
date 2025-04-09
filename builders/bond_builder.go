@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // BondBuilder builds a Bond model
 type BondBuilder struct {
-	bond *models.Bond
-	// Custom validation functions
+	bond            *models.Bond
 	validationFuncs []func(*models.Bond) error
 }
 
@@ -18,42 +16,36 @@ type BondBuilder struct {
 func NewBondBuilder() *BondBuilder {
 	return &BondBuilder{
 		bond: &models.Bond{
-			ID: "",
-			ISIN: "",
-			Name: "",
-			Issuer: "",
-			Type: "",
-			FaceValue: 0.0,
-			CouponRate: 0.0,
-			MaturityDate: "",
-			PurchaseDate: "",
-			PurchasePrice: 0.0,
-			CurrentPrice: 0.0,
-			Quantity: 0,
-			Currency: "",
+			ID:               "",
+			ISIN:             "",
+			Name:             "",
+			Issuer:           "",
+			Type:             "",
+			FaceValue:        0.0,
+			CouponRate:       0.0,
+			MaturityDate:     "",
+			PurchaseDate:     "",
+			PurchasePrice:    0.0,
+			CurrentPrice:     0.0,
+			Quantity:         0,
+			Currency:         "",
 			PaymentFrequency: "",
-			Rating: "",
-			Yield: 0.0,
+			Rating:           "",
+			Yield:            0.0,
 		},
 		validationFuncs: []func(*models.Bond) error{},
 	}
 }
 
-// NewBondBuilderWithDefaults creates a new BondBuilder with sensible defaults
-func NewBondBuilderWithDefaults() *BondBuilder {
-	builder := NewBondBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithID sets the ID
-func (b *BondBuilder) WithID(iD string) *BondBuilder {
-	b.bond.ID = iD
+func (b *BondBuilder) WithID(id string) *BondBuilder {
+	b.bond.ID = id
 	return b
 }
 
 // WithISIN sets the ISIN
-func (b *BondBuilder) WithISIN(iSIN string) *BondBuilder {
-	b.bond.ISIN = iSIN
+func (b *BondBuilder) WithISIN(isin string) *BondBuilder {
+	b.bond.ISIN = isin
 	return b
 }
 
@@ -70,8 +62,8 @@ func (b *BondBuilder) WithIssuer(issuer string) *BondBuilder {
 }
 
 // WithType sets the Type
-func (b *BondBuilder) WithType(value string) *BondBuilder {
-	b.bond.Type = value
+func (b *BondBuilder) WithType(bondType string) *BondBuilder {
+	b.bond.Type = bondType
 	return b
 }
 
@@ -141,7 +133,6 @@ func (b *BondBuilder) WithYield(yield float64) *BondBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *BondBuilder) WithValidation(validationFunc func(*models.Bond) error) *BondBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -149,7 +140,7 @@ func (b *BondBuilder) WithValidation(validationFunc func(*models.Bond) error) *B
 }
 
 // Build builds the Bond
-func (b *BondBuilder) Build() interface{} {
+func (b *BondBuilder) Build() any {
 	return b.bond
 }
 
@@ -165,15 +156,13 @@ func (b *BondBuilder) BuildAndValidate() (*models.Bond, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(bond); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return bond, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(bond).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return bond, err
-		}
+	// Run model's Validate method
+	if err := bond.Validate(); err != nil {
+		return bond, err
 	}
 
 	return bond, nil
@@ -181,18 +170,18 @@ func (b *BondBuilder) BuildAndValidate() (*models.Bond, error) {
 
 // MustBuild builds the Bond and panics if validation fails
 func (b *BondBuilder) MustBuild() *models.Bond {
-	model, err := b.BuildAndValidate()
+	bond, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Bond validation failed: %s", err.Error()))
 	}
-	return model
+	return bond
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the BondBuilder
 func (b *BondBuilder) Clone() *BondBuilder {
 	clonedBond := *b.bond
 	return &BondBuilder{
-		bond: &clonedBond,
+		bond:            &clonedBond,
 		validationFuncs: append([]func(*models.Bond) error{}, b.validationFuncs...),
 	}
 }

@@ -2,16 +2,16 @@
 
 A comprehensive toolkit for implementing the Builder pattern in Go, with support for complex types, nested objects, validation, and code generation.
 
-[![Go Builder Kit CI/CD](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/ci.yml)
+[![Go Builder Kit CI/CD](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/go.yml/badge.svg)](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/adil-faiyaz98/go-builder-kit)](https://goreportcard.com/report/github.com/adil-faiyaz98/go-builder-kit)
 [![GoDoc](https://godoc.org/github.com/adil-faiyaz98/go-builder-kit?status.svg)](https://godoc.org/github.com/adil-faiyaz98/go-builder-kit)
 
 ## Features
 
 - **Builder Pattern Implementation**: Ready-to-use builder pattern for Go structs
-- **Complex Type Support**: Handles complex nested structures and collections
+- **Comprehensive Nested Structure Support**: Fully handles deeply nested structures at any level of nesting
 - **Automatic Builder Generation**: Generate builder code for any struct
-- **Validation Support**: Built-in and custom validation for models
+- **Validation Support**: Built-in and custom validation for models with proper error propagation through nested structures
 - **Fluent Interface**: Clean, readable API with method chaining
 - **Type Safety**: Maintain type safety with Go's type system
 - **Performance Optimized**: Efficient implementation without compromising readability
@@ -25,6 +25,15 @@ A comprehensive toolkit for implementing the Builder pattern in Go, with support
 ```bash
 go get github.com/adil-faiyaz98/go-builder-kit
 ```
+
+## Releasing
+
+To release a new version of the library:
+
+1. Ensure all tests pass: `go test ./...`
+2. Tag the release: `git tag v1.0.0`
+3. Push the tag: `git push origin v1.0.0`
+4. The library will be available as a Go module: `go get github.com/adil-faiyaz98/go-builder-kit@v1.0.0`
 
 ## Quick Start
 
@@ -117,6 +126,71 @@ func main() {
 
 - [API Reference](docs/api/README.md)
 
+## Testing with Ginkgo and Gomega
+
+Go Builder Kit works seamlessly with Ginkgo and Gomega for BDD-style testing, which is especially valuable for testing complex nested structures.
+
+### Installation
+
+```bash
+go get github.com/onsi/ginkgo/v2
+go get github.com/onsi/gomega
+```
+
+### Example Test
+
+```go
+var _ = Describe("Person Builder", func() {
+    Context("with nested structures", func() {
+        It("should build a valid Person with nested Address", func() {
+            // Create a person with nested address
+            person := builders.NewPersonBuilder().
+                WithID("123").
+                WithName("John Doe").
+                WithEmail("john.doe@example.com").
+                WithAddress(builders.NewAddressBuilder().
+                    WithStreet("123 Main St").
+                    WithCity("San Francisco").
+                    WithCountry("USA")).
+                Build()
+
+            // Verify the person
+            Expect(person.ID).To(Equal("123"))
+            Expect(person.Name).To(Equal("John Doe"))
+            Expect(person.Email).To(Equal("john.doe@example.com"))
+
+            // Verify nested address
+            Expect(person.Address).NotTo(BeNil())
+            Expect(person.Address.Street).To(Equal("123 Main St"))
+            Expect(person.Address.City).To(Equal("San Francisco"))
+            Expect(person.Address.Country).To(Equal("USA"))
+        })
+
+        It("should fail validation with invalid data", func() {
+            // Create a person with invalid data
+            _, err := builders.NewPersonBuilder().
+                WithID("").  // Invalid: empty ID
+                WithName("John Doe").
+                WithEmail("invalid-email"). // Invalid: not a valid email
+                BuildAndValidate()
+
+            // Verify validation error
+            Expect(err).To(HaveOccurred())
+            Expect(err.Error()).To(ContainSubstring("ID cannot be empty"))
+            Expect(err.Error()).To(ContainSubstring("Email is not valid"))
+        })
+    })
+})
+```
+
+### Benefits for Testing Complex Nested Structures
+
+1. **Readable Test Setup**: Fluent builders make test setup code clear and maintainable
+2. **Focused Testing**: Test specific aspects of complex objects without building the entire structure
+3. **Reusable Test Fixtures**: Create base builders that can be cloned and modified for different test cases
+4. **Validation Testing**: Easily test both positive and negative validation scenarios
+5. **Expressive Assertions**: Ginkgo and Gomega provide rich assertions for verifying complex object graphs
+
 ## Builder Pattern
 
 The builder pattern is a creational design pattern that lets you construct complex objects step by step. It's particularly useful when:
@@ -201,6 +275,59 @@ if err != nil {
     return
 }
 ```
+
+## Nested Structures
+
+Go Builder Kit excels at handling deeply nested structures, which is one of its core strengths. The library provides comprehensive support for building and validating complex object graphs with multiple levels of nesting.
+
+### Example of Deep Nesting
+
+```go
+// Create a GeoLocation builder
+geoLocationBuilder := builders.NewGeoLocationBuilder().
+    WithLatitude(37.7749).
+    WithLongitude(-122.4194).
+    WithAccuracy(10.0)
+
+// Create an Address builder with nested GeoLocation
+addressBuilder := builders.NewAddressBuilder().
+    WithStreet("123 Main St").
+    WithCity("San Francisco").
+    WithState("CA").
+    WithPostalCode("94105").
+    WithCountry("USA").
+    WithCoordinates(geoLocationBuilder).
+    WithType("Home")
+
+// Create a Company builder with nested Address
+companyBuilder := builders.NewCompanyBuilder().
+    WithName("Acme Inc").
+    WithIndustry("Technology").
+    WithAddress(addressBuilder)
+
+// Create an Employment builder with nested Company
+employmentBuilder := builders.NewEmploymentBuilder().
+    WithPosition("Software Engineer").
+    WithDepartment("Engineering").
+    WithCompany(companyBuilder)
+
+// Create a Person builder with nested Address and Employment
+personBuilder := builders.NewPersonBuilder().
+    WithName("John Doe").
+    WithAddress(addressBuilder).
+    WithEmployment(employmentBuilder)
+
+// Build and validate the entire object graph
+person, err := personBuilder.BuildAndValidate()
+```
+
+### Key Features for Nested Structures
+
+1. **Automatic Validation Propagation**: Validation errors from nested objects are properly propagated up the object graph
+2. **Builder Composition**: Builders can be composed to create complex object graphs
+3. **Deep Cloning**: Builders can be cloned to create variations of complex objects
+4. **Type Safety**: Maintain type safety throughout the object graph
+5. **Fluent Interface**: Clean, readable API even with deeply nested structures
 
 ## Performance
 

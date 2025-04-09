@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // PortfolioBuilder builds a Portfolio model
 type PortfolioBuilder struct {
-	portfolio *models.Portfolio
-	// Custom validation functions
+	portfolio       *models.Portfolio
 	validationFuncs []func(*models.Portfolio) error
 }
 
@@ -18,31 +16,25 @@ type PortfolioBuilder struct {
 func NewPortfolioBuilder() *PortfolioBuilder {
 	return &PortfolioBuilder{
 		portfolio: &models.Portfolio{
-			ID: "",
-			Name: "",
-			Description: "",
-			RiskLevel: "",
-			TotalValue: 0.0,
-			Allocation: map[string]float64{},
-			Stocks: []*models.Stock{},
-			Bonds: []*models.Bond{},
-			ETFs: []*models.ETF{},
-			MutualFunds: []*models.MutualFund{},
-			Cryptocurrencies: []*models.Cryptocurrency{},
+			ID:               "",
+			Name:             "",
+			Description:      "",
+			RiskLevel:        "",
+			TotalValue:       0.0,
+			Allocation:       map[string]float64{},
+			Stocks:           []any{},
+			Bonds:            []*models.Bond{},
+			ETFs:             []any{},
+			MutualFunds:      []any{},
+			Cryptocurrencies: []any{},
 		},
 		validationFuncs: []func(*models.Portfolio) error{},
 	}
 }
 
-// NewPortfolioBuilderWithDefaults creates a new PortfolioBuilder with sensible defaults
-func NewPortfolioBuilderWithDefaults() *PortfolioBuilder {
-	builder := NewPortfolioBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithID sets the ID
-func (b *PortfolioBuilder) WithID(iD string) *PortfolioBuilder {
-	b.portfolio.ID = iD
+func (b *PortfolioBuilder) WithID(id string) *PortfolioBuilder {
+	b.portfolio.ID = id
 	return b
 }
 
@@ -70,75 +62,45 @@ func (b *PortfolioBuilder) WithTotalValue(totalValue float64) *PortfolioBuilder 
 	return b
 }
 
-// WithAllocation sets the Allocation
-func (b *PortfolioBuilder) WithAllocation(key string, val float64) *PortfolioBuilder {
+// WithAllocation adds an allocation to the Allocation map
+func (b *PortfolioBuilder) WithAllocation(assetClass string, percentage float64) *PortfolioBuilder {
 	if b.portfolio.Allocation == nil {
-		b.portfolio.Allocation = make(map[string]float64)
+		b.portfolio.Allocation = map[string]float64{}
 	}
-	b.portfolio.Allocation[key] = val
+	b.portfolio.Allocation[assetClass] = percentage
 	return b
 }
 
-// WithStocks sets the Stocks
-func (b *PortfolioBuilder) WithStocks(stocks *StockBuilder) *PortfolioBuilder {
-	// Ensure the slice is initialized
-	if b.portfolio.Stocks == nil {
-		b.portfolio.Stocks = []*models.Stock{}
-	}
-	// Handle nested slice element
-	builtValue := stocks.Build().(*models.Stock)
-	b.portfolio.Stocks = append(b.portfolio.Stocks, builtValue)
+// WithStock adds a stock to the Stocks slice
+func (b *PortfolioBuilder) WithStock(stock any) *PortfolioBuilder {
+	b.portfolio.Stocks = append(b.portfolio.Stocks, stock)
 	return b
 }
 
-// WithBonds sets the Bonds
-func (b *PortfolioBuilder) WithBonds(bonds *BondBuilder) *PortfolioBuilder {
-	// Ensure the slice is initialized
-	if b.portfolio.Bonds == nil {
-		b.portfolio.Bonds = []*models.Bond{}
-	}
-	// Handle nested slice element
-	builtValue := bonds.Build().(*models.Bond)
+// WithBond adds a bond to the Bonds slice
+func (b *PortfolioBuilder) WithBond(bond *BondBuilder) *PortfolioBuilder {
+	builtValue := bond.Build().(*models.Bond)
 	b.portfolio.Bonds = append(b.portfolio.Bonds, builtValue)
 	return b
 }
 
-// WithETFs sets the ETFs
-func (b *PortfolioBuilder) WithETFs(eTFs *ETFBuilder) *PortfolioBuilder {
-	// Ensure the slice is initialized
-	if b.portfolio.ETFs == nil {
-		b.portfolio.ETFs = []*models.ETF{}
-	}
-	// Handle nested slice element
-	builtValue := eTFs.Build().(*models.ETF)
-	b.portfolio.ETFs = append(b.portfolio.ETFs, builtValue)
+// WithETF adds an ETF to the ETFs slice
+func (b *PortfolioBuilder) WithETF(etf any) *PortfolioBuilder {
+	b.portfolio.ETFs = append(b.portfolio.ETFs, etf)
 	return b
 }
 
-// WithMutualFunds sets the MutualFunds
-func (b *PortfolioBuilder) WithMutualFunds(mutualFunds *MutualFundBuilder) *PortfolioBuilder {
-	// Ensure the slice is initialized
-	if b.portfolio.MutualFunds == nil {
-		b.portfolio.MutualFunds = []*models.MutualFund{}
-	}
-	// Handle nested slice element
-	builtValue := mutualFunds.Build().(*models.MutualFund)
-	b.portfolio.MutualFunds = append(b.portfolio.MutualFunds, builtValue)
+// WithMutualFund adds a mutual fund to the MutualFunds slice
+func (b *PortfolioBuilder) WithMutualFund(mutualFund any) *PortfolioBuilder {
+	b.portfolio.MutualFunds = append(b.portfolio.MutualFunds, mutualFund)
 	return b
 }
 
-// WithCryptocurrencies sets the Cryptocurrencies
-func (b *PortfolioBuilder) WithCryptocurrencies(cryptocurrencies *CryptocurrencyBuilder) *PortfolioBuilder {
-	// Ensure the slice is initialized
-	if b.portfolio.Cryptocurrencies == nil {
-		b.portfolio.Cryptocurrencies = []*models.Cryptocurrency{}
-	}
-	// Handle nested slice element
-	builtValue := cryptocurrencies.Build().(*models.Cryptocurrency)
-	b.portfolio.Cryptocurrencies = append(b.portfolio.Cryptocurrencies, builtValue)
+// WithCryptocurrency adds a cryptocurrency to the Cryptocurrencies slice
+func (b *PortfolioBuilder) WithCryptocurrency(cryptocurrency any) *PortfolioBuilder {
+	b.portfolio.Cryptocurrencies = append(b.portfolio.Cryptocurrencies, cryptocurrency)
 	return b
 }
-
 
 // WithValidation adds a custom validation function
 func (b *PortfolioBuilder) WithValidation(validationFunc func(*models.Portfolio) error) *PortfolioBuilder {
@@ -147,7 +109,7 @@ func (b *PortfolioBuilder) WithValidation(validationFunc func(*models.Portfolio)
 }
 
 // Build builds the Portfolio
-func (b *PortfolioBuilder) Build() interface{} {
+func (b *PortfolioBuilder) Build() any {
 	return b.portfolio
 }
 
@@ -163,15 +125,13 @@ func (b *PortfolioBuilder) BuildAndValidate() (*models.Portfolio, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(portfolio); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return portfolio, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(portfolio).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return portfolio, err
-		}
+	// Run model's Validate method
+	if err := portfolio.Validate(); err != nil {
+		return portfolio, err
 	}
 
 	return portfolio, nil
@@ -179,18 +139,18 @@ func (b *PortfolioBuilder) BuildAndValidate() (*models.Portfolio, error) {
 
 // MustBuild builds the Portfolio and panics if validation fails
 func (b *PortfolioBuilder) MustBuild() *models.Portfolio {
-	model, err := b.BuildAndValidate()
+	portfolio, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Portfolio validation failed: %s", err.Error()))
 	}
-	return model
+	return portfolio
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the PortfolioBuilder
 func (b *PortfolioBuilder) Clone() *PortfolioBuilder {
 	clonedPortfolio := *b.portfolio
 	return &PortfolioBuilder{
-		portfolio: &clonedPortfolio,
+		portfolio:       &clonedPortfolio,
 		validationFuncs: append([]func(*models.Portfolio) error{}, b.validationFuncs...),
 	}
 }

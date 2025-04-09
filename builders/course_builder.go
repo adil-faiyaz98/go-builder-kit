@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // CourseBuilder builds a Course model
 type CourseBuilder struct {
-	course *models.Course
-	// Custom validation functions
+	course          *models.Course
 	validationFuncs []func(*models.Course) error
 }
 
@@ -18,25 +16,19 @@ type CourseBuilder struct {
 func NewCourseBuilder() *CourseBuilder {
 	return &CourseBuilder{
 		course: &models.Course{
-			Code: "",
-			Name: "",
+			Code:        "",
+			Name:        "",
 			Description: "",
-			Credits: 0.0,
-			Grade: "",
-			Semester: "",
-			Year: 0,
-			Instructor: "",
+			Credits:     0.0,
+			Grade:       "",
+			Semester:    "",
+			Year:        0,
+			Instructor:  "",
 		},
 		validationFuncs: []func(*models.Course) error{},
 	}
 }
 
-// NewCourseBuilderWithDefaults creates a new CourseBuilder with sensible defaults
-func NewCourseBuilderWithDefaults() *CourseBuilder {
-	builder := NewCourseBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithCode sets the Code
 func (b *CourseBuilder) WithCode(code string) *CourseBuilder {
 	b.course.Code = code
@@ -85,7 +77,6 @@ func (b *CourseBuilder) WithInstructor(instructor string) *CourseBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *CourseBuilder) WithValidation(validationFunc func(*models.Course) error) *CourseBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -93,7 +84,7 @@ func (b *CourseBuilder) WithValidation(validationFunc func(*models.Course) error
 }
 
 // Build builds the Course
-func (b *CourseBuilder) Build() interface{} {
+func (b *CourseBuilder) Build() any {
 	return b.course
 }
 
@@ -109,15 +100,13 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(course); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return course, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(course).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return course, err
-		}
+	// Run model's Validate method
+	if err := course.Validate(); err != nil {
+		return course, err
 	}
 
 	return course, nil
@@ -125,18 +114,18 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 
 // MustBuild builds the Course and panics if validation fails
 func (b *CourseBuilder) MustBuild() *models.Course {
-	model, err := b.BuildAndValidate()
+	course, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Course validation failed: %s", err.Error()))
 	}
-	return model
+	return course
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the CourseBuilder
 func (b *CourseBuilder) Clone() *CourseBuilder {
 	clonedCourse := *b.course
 	return &CourseBuilder{
-		course: &clonedCourse,
+		course:          &clonedCourse,
 		validationFuncs: append([]func(*models.Course) error{}, b.validationFuncs...),
 	}
 }

@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // ProjectBuilder builds a Project model
 type ProjectBuilder struct {
-	project *models.Project
-	// Custom validation functions
+	project         *models.Project
 	validationFuncs []func(*models.Project) error
 }
 
@@ -18,37 +16,24 @@ type ProjectBuilder struct {
 func NewProjectBuilder() *ProjectBuilder {
 	return &ProjectBuilder{
 		project: &models.Project{
-			Name: "",
-			Code: "",
+			Name:        "",
 			Description: "",
-			StartDate: "",
-			EndDate: "",
-			Budget: 0.0,
-			Status: "",
-			Manager: any(0),
-			Team: []any{},
-			Members: []any{},
-			Tasks: []*models.Task{},
+			StartDate:   "",
+			EndDate:     "",
+			Status:      "",
+			Budget:      0.0,
+			Manager:     nil,
+			Team:        []any{},
+			Members:     []any{},
+			Tasks:       []*models.Task{},
 		},
 		validationFuncs: []func(*models.Project) error{},
 	}
 }
 
-// NewProjectBuilderWithDefaults creates a new ProjectBuilder with sensible defaults
-func NewProjectBuilderWithDefaults() *ProjectBuilder {
-	builder := NewProjectBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithName sets the Name
 func (b *ProjectBuilder) WithName(name string) *ProjectBuilder {
 	b.project.Name = name
-	return b
-}
-
-// WithCode sets the Code
-func (b *ProjectBuilder) WithCode(code string) *ProjectBuilder {
-	b.project.Code = code
 	return b
 }
 
@@ -70,15 +55,15 @@ func (b *ProjectBuilder) WithEndDate(endDate string) *ProjectBuilder {
 	return b
 }
 
-// WithBudget sets the Budget
-func (b *ProjectBuilder) WithBudget(budget float64) *ProjectBuilder {
-	b.project.Budget = budget
-	return b
-}
-
 // WithStatus sets the Status
 func (b *ProjectBuilder) WithStatus(status string) *ProjectBuilder {
 	b.project.Status = status
+	return b
+}
+
+// WithBudget sets the Budget
+func (b *ProjectBuilder) WithBudget(budget float64) *ProjectBuilder {
+	b.project.Budget = budget
 	return b
 }
 
@@ -88,30 +73,24 @@ func (b *ProjectBuilder) WithManager(manager any) *ProjectBuilder {
 	return b
 }
 
-// WithTeam sets the Team
-func (b *ProjectBuilder) WithTeam(team any) *ProjectBuilder {
-	b.project.Team = append(b.project.Team, team)
+// WithTeamMember adds a team member to the Team slice
+func (b *ProjectBuilder) WithTeamMember(teamMember any) *ProjectBuilder {
+	b.project.Team = append(b.project.Team, teamMember)
 	return b
 }
 
-// WithMembers sets the Members
-func (b *ProjectBuilder) WithMembers(members any) *ProjectBuilder {
-	b.project.Members = append(b.project.Members, members)
+// WithMember adds a member to the Members slice
+func (b *ProjectBuilder) WithMember(member any) *ProjectBuilder {
+	b.project.Members = append(b.project.Members, member)
 	return b
 }
 
-// WithTasks sets the Tasks
-func (b *ProjectBuilder) WithTasks(tasks *TaskBuilder) *ProjectBuilder {
-	// Ensure the slice is initialized
-	if b.project.Tasks == nil {
-		b.project.Tasks = []*models.Task{}
-	}
-	// Handle nested slice element
-	builtValue := tasks.Build().(*models.Task)
+// WithTask adds a task to the Tasks slice
+func (b *ProjectBuilder) WithTask(task *TaskBuilder) *ProjectBuilder {
+	builtValue := task.Build().(*models.Task)
 	b.project.Tasks = append(b.project.Tasks, builtValue)
 	return b
 }
-
 
 // WithValidation adds a custom validation function
 func (b *ProjectBuilder) WithValidation(validationFunc func(*models.Project) error) *ProjectBuilder {
@@ -120,7 +99,7 @@ func (b *ProjectBuilder) WithValidation(validationFunc func(*models.Project) err
 }
 
 // Build builds the Project
-func (b *ProjectBuilder) Build() interface{} {
+func (b *ProjectBuilder) Build() any {
 	return b.project
 }
 
@@ -136,15 +115,13 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(project); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return project, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(project).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return project, err
-		}
+	// Run model's Validate method
+	if err := project.Validate(); err != nil {
+		return project, err
 	}
 
 	return project, nil
@@ -152,18 +129,18 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 
 // MustBuild builds the Project and panics if validation fails
 func (b *ProjectBuilder) MustBuild() *models.Project {
-	model, err := b.BuildAndValidate()
+	project, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Project validation failed: %s", err.Error()))
 	}
-	return model
+	return project
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the ProjectBuilder
 func (b *ProjectBuilder) Clone() *ProjectBuilder {
 	clonedProject := *b.project
 	return &ProjectBuilder{
-		project: &clonedProject,
+		project:         &clonedProject,
 		validationFuncs: append([]func(*models.Project) error{}, b.validationFuncs...),
 	}
 }

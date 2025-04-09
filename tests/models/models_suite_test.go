@@ -11,4 +11,3 @@ func TestModels(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Models Suite")
 }
-

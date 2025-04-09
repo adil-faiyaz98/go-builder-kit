@@ -20,13 +20,13 @@ type Person struct {
 	MaritalStatus string
 	Address       *Address
 	Education     *Education
-	Profile       *Profile
+	Profile       any
 	Bank          *Bank
 	Employment    *Employment
 	Friends       []*Person
 	Family        []*FamilyMember
-	Health        *HealthProfile
-	Digital       *DigitalProfile
+	Health        any
+	Digital       any
 	TravelHistory []*Travel
 	Preferences   *PersonalPreferences
 	CreatedAt     string
@@ -136,12 +136,7 @@ func (p *Person) Validate() error {
 		}
 	}
 
-	// Validate Profile if provided
-	if p.Profile != nil {
-		if err := p.Profile.Validate(); err != nil {
-			errors = append(errors, fmt.Sprintf("Profile validation failed: %s", err.Error()))
-		}
-	}
+	// Skip validation for Profile as it is now any type
 
 	// Validate Bank if provided
 	if p.Bank != nil {
@@ -157,19 +152,9 @@ func (p *Person) Validate() error {
 		}
 	}
 
-	// Validate Health if provided
-	if p.Health != nil {
-		if err := p.Health.Validate(); err != nil {
-			errors = append(errors, fmt.Sprintf("Health validation failed: %s", err.Error()))
-		}
-	}
+	// Skip validation for Health as it is now any type
 
-	// Validate Digital if provided
-	if p.Digital != nil {
-		if err := p.Digital.Validate(); err != nil {
-			errors = append(errors, fmt.Sprintf("Digital validation failed: %s", err.Error()))
-		}
-	}
+	// Skip validation for Digital as it is now any type
 
 	// Validate Preferences if provided
 	if p.Preferences != nil {

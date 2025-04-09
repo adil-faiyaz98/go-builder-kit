@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"unicode"
 )
 
 // Builder is the interface that all builders must implement
@@ -105,7 +106,11 @@ func SnakeToCamel(s string) string {
 		if word == "" {
 			continue
 		}
-		result += strings.Title(word)
+		if len(word) > 0 {
+			first := unicode.ToUpper(rune(word[0]))
+			rest := word[1:]
+			result += string(first) + rest
+		}
 	}
 	return result
 }

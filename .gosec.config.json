@@ -1,0 +1,19 @@
+{
+  "global": {
+    "audit": true,
+    "nosec": true
+  },
+  "severity": "medium",
+  "confidence": "medium",
+  "exclude": [
+    "G104"
+  ],
+  "exclude-dir": [
+    "vendor",
+    "tests"
+  ],
+  "sort": true,
+  "no-fail": false,
+  "fmt": "json",
+  "out": "gosec-results.json"
+}

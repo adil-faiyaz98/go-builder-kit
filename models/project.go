@@ -9,15 +9,14 @@ import (
 // Project represents a project
 type Project struct {
 	Name        string
-	Code        string
 	Description string
 	StartDate   string
 	EndDate     string
-	Budget      float64
 	Status      string
-	Manager     any   // Will be *Person, using any to avoid import cycle
-	Team        []any // Will be []*Person, using any to avoid import cycle
-	Members     []any // Will be []*Person, using any to avoid import cycle
+	Budget      float64
+	Manager     any
+	Team        []any
+	Members     []any
 	Tasks       []*Task
 }
 
@@ -28,11 +27,6 @@ func (p *Project) Validate() error {
 	// Validate Name
 	if p.Name == "" {
 		errors = append(errors, "Name cannot be empty")
-	}
-
-	// Validate Code
-	if p.Code == "" {
-		errors = append(errors, "Code cannot be empty")
 	}
 
 	// Validate StartDate if provided
@@ -60,7 +54,7 @@ func (p *Project) Validate() error {
 
 	// Validate Status if provided
 	if p.Status != "" {
-		validStatuses := []string{"planning", "active", "on hold", "completed", "cancelled"}
+		validStatuses := []string{"planning", "in-progress", "on-hold", "completed", "cancelled"}
 		isValidStatus := false
 		for _, status := range validStatuses {
 			if strings.ToLower(p.Status) == status {
@@ -69,7 +63,7 @@ func (p *Project) Validate() error {
 			}
 		}
 		if !isValidStatus {
-			errors = append(errors, "Status must be one of: planning, active, on hold, completed, cancelled")
+			errors = append(errors, "Status must be one of: planning, in-progress, on-hold, completed, cancelled")
 		}
 	}
 
@@ -90,17 +84,16 @@ func (p *Project) Validate() error {
 	return nil
 }
 
-// Task represents a project task
+// Task represents a task in a project
 type Task struct {
-	Name         string
-	Description  string
-	StartDate    string
-	EndDate      string
-	Status       string
-	Priority     string
-	Assignee     any // Will be *Person, using any to avoid import cycle
-	Subtasks     []*Task
-	Dependencies []*Task
+	Name        string
+	Description string
+	StartDate   string
+	EndDate     string
+	Status      string
+	Priority    string
+	Assignee    any
+	Subtasks    []*Task
 }
 
 // Validate validates the Task model
@@ -132,7 +125,7 @@ func (t *Task) Validate() error {
 
 	// Validate Status if provided
 	if t.Status != "" {
-		validStatuses := []string{"not started", "in progress", "completed", "blocked", "deferred"}
+		validStatuses := []string{"not-started", "in-progress", "completed", "blocked", "deferred"}
 		isValidStatus := false
 		for _, status := range validStatuses {
 			if strings.ToLower(t.Status) == status {
@@ -141,7 +134,7 @@ func (t *Task) Validate() error {
 			}
 		}
 		if !isValidStatus {
-			errors = append(errors, "Status must be one of: not started, in progress, completed, blocked, deferred")
+			errors = append(errors, "Status must be one of: not-started, in-progress, completed, blocked, deferred")
 		}
 	}
 

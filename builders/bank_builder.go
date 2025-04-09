@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // BankBuilder builds a Bank model
 type BankBuilder struct {
-	bank *models.Bank
-	// Custom validation functions
+	bank            *models.Bank
 	validationFuncs []func(*models.Bank) error
 }
 
@@ -18,26 +16,20 @@ type BankBuilder struct {
 func NewBankBuilder() *BankBuilder {
 	return &BankBuilder{
 		bank: &models.Bank{
-			Name: "",
-			BranchCode: "",
-			Address: nil,
-			Accounts: []*models.Account{},
-			Stocks: []*models.Stock{},
-			Loans: []*models.Loan{},
-			Investments: []*models.Investment{},
-			Advisor: any(0),
+			Name:                  "",
+			BranchCode:            "",
+			Address:               nil,
+			Accounts:              []*models.Account{},
+			Stocks:                []any{},
+			Loans:                 []any{},
+			Investments:           []any{},
+			Advisor:               nil,
 			RelationshipStartDate: "",
 		},
 		validationFuncs: []func(*models.Bank) error{},
 	}
 }
 
-// NewBankBuilderWithDefaults creates a new BankBuilder with sensible defaults
-func NewBankBuilderWithDefaults() *BankBuilder {
-	builder := NewBankBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithName sets the Name
 func (b *BankBuilder) WithName(name string) *BankBuilder {
 	b.bank.Name = name
@@ -52,56 +44,33 @@ func (b *BankBuilder) WithBranchCode(branchCode string) *BankBuilder {
 
 // WithAddress sets the Address
 func (b *BankBuilder) WithAddress(address *AddressBuilder) *BankBuilder {
-	// Handle nested pointer
-	b.bank.Address = address.BuildPtr()
+	builtValue := address.Build().(*models.Address)
+	b.bank.Address = builtValue
 	return b
 }
 
-// WithAccounts sets the Accounts
-func (b *BankBuilder) WithAccounts(accounts *AccountBuilder) *BankBuilder {
-	// Ensure the slice is initialized
-	if b.bank.Accounts == nil {
-		b.bank.Accounts = []*models.Account{}
-	}
-	// Handle nested slice element
-	builtValue := accounts.Build().(*models.Account)
+// WithAccount adds an account to the Accounts slice
+func (b *BankBuilder) WithAccount(account *AccountBuilder) *BankBuilder {
+	builtValue := account.Build().(*models.Account)
 	b.bank.Accounts = append(b.bank.Accounts, builtValue)
 	return b
 }
 
-// WithStocks sets the Stocks
-func (b *BankBuilder) WithStocks(stocks *StockBuilder) *BankBuilder {
-	// Ensure the slice is initialized
-	if b.bank.Stocks == nil {
-		b.bank.Stocks = []*models.Stock{}
-	}
-	// Handle nested slice element
-	builtValue := stocks.Build().(*models.Stock)
-	b.bank.Stocks = append(b.bank.Stocks, builtValue)
+// WithStock adds a stock to the Stocks slice
+func (b *BankBuilder) WithStock(stock any) *BankBuilder {
+	b.bank.Stocks = append(b.bank.Stocks, stock)
 	return b
 }
 
-// WithLoans sets the Loans
-func (b *BankBuilder) WithLoans(loans *LoanBuilder) *BankBuilder {
-	// Ensure the slice is initialized
-	if b.bank.Loans == nil {
-		b.bank.Loans = []*models.Loan{}
-	}
-	// Handle nested slice element
-	builtValue := loans.Build().(*models.Loan)
-	b.bank.Loans = append(b.bank.Loans, builtValue)
+// WithLoan adds a loan to the Loans slice
+func (b *BankBuilder) WithLoan(loan any) *BankBuilder {
+	b.bank.Loans = append(b.bank.Loans, loan)
 	return b
 }
 
-// WithInvestments sets the Investments
-func (b *BankBuilder) WithInvestments(investments *InvestmentBuilder) *BankBuilder {
-	// Ensure the slice is initialized
-	if b.bank.Investments == nil {
-		b.bank.Investments = []*models.Investment{}
-	}
-	// Handle nested slice element
-	builtValue := investments.Build().(*models.Investment)
-	b.bank.Investments = append(b.bank.Investments, builtValue)
+// WithInvestment adds an investment to the Investments slice
+func (b *BankBuilder) WithInvestment(investment any) *BankBuilder {
+	b.bank.Investments = append(b.bank.Investments, investment)
 	return b
 }
 
@@ -117,7 +86,6 @@ func (b *BankBuilder) WithRelationshipStartDate(relationshipStartDate string) *B
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *BankBuilder) WithValidation(validationFunc func(*models.Bank) error) *BankBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -125,7 +93,7 @@ func (b *BankBuilder) WithValidation(validationFunc func(*models.Bank) error) *B
 }
 
 // Build builds the Bank
-func (b *BankBuilder) Build() interface{} {
+func (b *BankBuilder) Build() any {
 	return b.bank
 }
 
@@ -141,15 +109,13 @@ func (b *BankBuilder) BuildAndValidate() (*models.Bank, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(bank); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return bank, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(bank).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return bank, err
-		}
+	// Run model's Validate method
+	if err := bank.Validate(); err != nil {
+		return bank, err
 	}
 
 	return bank, nil
@@ -157,18 +123,18 @@ func (b *BankBuilder) BuildAndValidate() (*models.Bank, error) {
 
 // MustBuild builds the Bank and panics if validation fails
 func (b *BankBuilder) MustBuild() *models.Bank {
-	model, err := b.BuildAndValidate()
+	bank, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Bank validation failed: %s", err.Error()))
 	}
-	return model
+	return bank
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the BankBuilder
 func (b *BankBuilder) Clone() *BankBuilder {
 	clonedBank := *b.bank
 	return &BankBuilder{
-		bank: &clonedBank,
+		bank:            &clonedBank,
 		validationFuncs: append([]func(*models.Bank) error{}, b.validationFuncs...),
 	}
 }

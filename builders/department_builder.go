@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // DepartmentBuilder builds a Department model
 type DepartmentBuilder struct {
-	department *models.Department
-	// Custom validation functions
+	department      *models.Department
 	validationFuncs []func(*models.Department) error
 }
 
@@ -18,26 +16,20 @@ type DepartmentBuilder struct {
 func NewDepartmentBuilder() *DepartmentBuilder {
 	return &DepartmentBuilder{
 		department: &models.Department{
-			Name: "",
-			Code: "",
+			Name:        "",
+			Code:        "",
 			Description: "",
-			Manager: any(0),
-			Employees: []any{},
-			Budget: 0.0,
-			HeadCount: 0,
-			Projects: []*models.Project{},
-			Location: nil,
+			Manager:     nil,
+			Employees:   []any{},
+			Budget:      0.0,
+			HeadCount:   0,
+			Location:    nil,
+			Projects:    []any{},
 		},
 		validationFuncs: []func(*models.Department) error{},
 	}
 }
 
-// NewDepartmentBuilderWithDefaults creates a new DepartmentBuilder with sensible defaults
-func NewDepartmentBuilderWithDefaults() *DepartmentBuilder {
-	builder := NewDepartmentBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithName sets the Name
 func (b *DepartmentBuilder) WithName(name string) *DepartmentBuilder {
 	b.department.Name = name
@@ -62,9 +54,9 @@ func (b *DepartmentBuilder) WithManager(manager any) *DepartmentBuilder {
 	return b
 }
 
-// WithEmployees sets the Employees
-func (b *DepartmentBuilder) WithEmployees(employees any) *DepartmentBuilder {
-	b.department.Employees = append(b.department.Employees, employees)
+// WithEmployee adds an employee to the Employees slice
+func (b *DepartmentBuilder) WithEmployee(employee any) *DepartmentBuilder {
+	b.department.Employees = append(b.department.Employees, employee)
 	return b
 }
 
@@ -80,25 +72,18 @@ func (b *DepartmentBuilder) WithHeadCount(headCount int) *DepartmentBuilder {
 	return b
 }
 
-// WithProjects sets the Projects
-func (b *DepartmentBuilder) WithProjects(projects *ProjectBuilder) *DepartmentBuilder {
-	// Ensure the slice is initialized
-	if b.department.Projects == nil {
-		b.department.Projects = []*models.Project{}
-	}
-	// Handle nested slice element
-	builtValue := projects.Build().(*models.Project)
-	b.department.Projects = append(b.department.Projects, builtValue)
-	return b
-}
-
 // WithLocation sets the Location
 func (b *DepartmentBuilder) WithLocation(location *AddressBuilder) *DepartmentBuilder {
-	// Handle nested pointer
-	b.department.Location = location.BuildPtr()
+	builtValue := location.Build().(*models.Address)
+	b.department.Location = builtValue
 	return b
 }
 
+// WithProject adds a project to the Projects slice
+func (b *DepartmentBuilder) WithProject(project any) *DepartmentBuilder {
+	b.department.Projects = append(b.department.Projects, project)
+	return b
+}
 
 // WithValidation adds a custom validation function
 func (b *DepartmentBuilder) WithValidation(validationFunc func(*models.Department) error) *DepartmentBuilder {
@@ -107,7 +92,7 @@ func (b *DepartmentBuilder) WithValidation(validationFunc func(*models.Departmen
 }
 
 // Build builds the Department
-func (b *DepartmentBuilder) Build() interface{} {
+func (b *DepartmentBuilder) Build() any {
 	return b.department
 }
 
@@ -123,15 +108,13 @@ func (b *DepartmentBuilder) BuildAndValidate() (*models.Department, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(department); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return department, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(department).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return department, err
-		}
+	// Run model's Validate method
+	if err := department.Validate(); err != nil {
+		return department, err
 	}
 
 	return department, nil
@@ -139,18 +122,18 @@ func (b *DepartmentBuilder) BuildAndValidate() (*models.Department, error) {
 
 // MustBuild builds the Department and panics if validation fails
 func (b *DepartmentBuilder) MustBuild() *models.Department {
-	model, err := b.BuildAndValidate()
+	department, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Department validation failed: %s", err.Error()))
 	}
-	return model
+	return department
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the DepartmentBuilder
 func (b *DepartmentBuilder) Clone() *DepartmentBuilder {
 	clonedDepartment := *b.department
 	return &DepartmentBuilder{
-		department: &clonedDepartment,
+		department:      &clonedDepartment,
 		validationFuncs: append([]func(*models.Department) error{}, b.validationFuncs...),
 	}
 }

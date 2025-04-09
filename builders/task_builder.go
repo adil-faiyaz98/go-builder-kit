@@ -2,15 +2,13 @@ package builders
 
 import (
 	"fmt"
-	
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
-	
 )
 
 // TaskBuilder builds a Task model
 type TaskBuilder struct {
-	task *models.Task
-	// Custom validation functions
+	task            *models.Task
 	validationFuncs []func(*models.Task) error
 }
 
@@ -18,26 +16,19 @@ type TaskBuilder struct {
 func NewTaskBuilder() *TaskBuilder {
 	return &TaskBuilder{
 		task: &models.Task{
-			Name: "",
+			Name:        "",
 			Description: "",
-			StartDate: "",
-			EndDate: "",
-			Status: "",
-			Priority: "",
-			Assignee: any(0),
-			Subtasks: []*models.Task{},
-			Dependencies: []*models.Task{},
+			StartDate:   "",
+			EndDate:     "",
+			Status:      "",
+			Priority:    "",
+			Assignee:    nil,
+			Subtasks:    []*models.Task{},
 		},
 		validationFuncs: []func(*models.Task) error{},
 	}
 }
 
-// NewTaskBuilderWithDefaults creates a new TaskBuilder with sensible defaults
-func NewTaskBuilderWithDefaults() *TaskBuilder {
-	builder := NewTaskBuilder()
-	// Add default values here if needed
-	return builder
-}
 // WithName sets the Name
 func (b *TaskBuilder) WithName(name string) *TaskBuilder {
 	b.task.Name = name
@@ -80,30 +71,12 @@ func (b *TaskBuilder) WithAssignee(assignee any) *TaskBuilder {
 	return b
 }
 
-// WithSubtasks sets the Subtasks
-func (b *TaskBuilder) WithSubtasks(subtasks *TaskBuilder) *TaskBuilder {
-	// Ensure the slice is initialized
-	if b.task.Subtasks == nil {
-		b.task.Subtasks = []*models.Task{}
-	}
-	// Handle nested slice element
-	builtValue := subtasks.Build().(*models.Task)
+// WithSubtask adds a subtask to the Subtasks slice
+func (b *TaskBuilder) WithSubtask(subtask *TaskBuilder) *TaskBuilder {
+	builtValue := subtask.Build().(*models.Task)
 	b.task.Subtasks = append(b.task.Subtasks, builtValue)
 	return b
 }
-
-// WithDependencies sets the Dependencies
-func (b *TaskBuilder) WithDependencies(dependencies *TaskBuilder) *TaskBuilder {
-	// Ensure the slice is initialized
-	if b.task.Dependencies == nil {
-		b.task.Dependencies = []*models.Task{}
-	}
-	// Handle nested slice element
-	builtValue := dependencies.Build().(*models.Task)
-	b.task.Dependencies = append(b.task.Dependencies, builtValue)
-	return b
-}
-
 
 // WithValidation adds a custom validation function
 func (b *TaskBuilder) WithValidation(validationFunc func(*models.Task) error) *TaskBuilder {
@@ -112,7 +85,7 @@ func (b *TaskBuilder) WithValidation(validationFunc func(*models.Task) error) *T
 }
 
 // Build builds the Task
-func (b *TaskBuilder) Build() interface{} {
+func (b *TaskBuilder) Build() any {
 	return b.task
 }
 
@@ -128,15 +101,13 @@ func (b *TaskBuilder) BuildAndValidate() (*models.Task, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(task); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return task, err
 		}
 	}
 
-	// Run model's Validate method if it exists
-	if v, ok := interface{}(task).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return task, err
-		}
+	// Run model's Validate method
+	if err := task.Validate(); err != nil {
+		return task, err
 	}
 
 	return task, nil
@@ -144,18 +115,18 @@ func (b *TaskBuilder) BuildAndValidate() (*models.Task, error) {
 
 // MustBuild builds the Task and panics if validation fails
 func (b *TaskBuilder) MustBuild() *models.Task {
-	model, err := b.BuildAndValidate()
+	task, err := b.BuildAndValidate()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Task validation failed: %s", err.Error()))
 	}
-	return model
+	return task
 }
 
-// Clone creates a deep copy of the builder
+// Clone creates a deep copy of the TaskBuilder
 func (b *TaskBuilder) Clone() *TaskBuilder {
 	clonedTask := *b.task
 	return &TaskBuilder{
-		task: &clonedTask,
+		task:            &clonedTask,
 		validationFuncs: append([]func(*models.Task) error{}, b.validationFuncs...),
 	}
 }

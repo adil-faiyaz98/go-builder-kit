@@ -3,6 +3,7 @@ project_name: go-builder-kit
 before:
   hooks:
     - go mod tidy
+    - go generate ./...
 
 builds:
   - env:
@@ -16,6 +17,8 @@ builds:
       - arm64
     main: ./cmd/builder-gen/main.go
     binary: builder-gen
+  - id: library
+    skip: true  # Skip binary builds for the library part
 
 archives:
   - format: tar.gz
@@ -25,6 +28,7 @@ archives:
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
@@ -43,3 +47,35 @@ changelog:
       - '^test:'
       - '^ci:'
       - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: adil-faiyaz98
+    name: go-builder-kit
+  prerelease: auto
+  draft: false
+  name_template: "{{ .ProjectName }} v{{ .Version }}"
+  header: |
+    # {{ .ProjectName }} v{{ .Version }}
+
+    This release includes improvements to the builder pattern implementation, enhanced nested struct support, and bug fixes.
+
+  footer: |
+    ## Installation
+
+    ```bash
+    go get github.com/adil-faiyaz98/go-builder-kit@{{ .Tag }}
+    ```
+
+    ## Documentation
+
+    Full documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit@{{ .Tag }})
+
+    ## Thanks
+
+    Thanks to all contributors who made this release possible!
+
+announce:
+  skip: false

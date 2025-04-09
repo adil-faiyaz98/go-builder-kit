@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 // Options contains options for the generator
@@ -184,7 +185,7 @@ func ToSnakeCase(s string) string {
 		if i > 0 && 'A' <= r && r <= 'Z' {
 			result.WriteRune('_')
 		}
-		result.WriteRune(strings.ToLower(string(r))[0])
+		result.WriteRune(unicode.ToLower(r))
 	}
 	return result.String()
 }

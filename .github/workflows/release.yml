@@ -26,21 +26,17 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Install GoReleaser Nightly
+      - name: Install GoReleaser Nightly and add to PATH
         run: |
           curl -sL https://github.com/goreleaser/goreleaser/releases/download/nightly/goreleaser_Linux_x86_64.tar.gz -o goreleaser.tar.gz
           tar -xzf goreleaser.tar.gz
           chmod +x goreleaser
-          echo "$PWD" >> $GITHUB_PATH  # Add current dir (with `goreleaser`) to PATH
+          mkdir -p $HOME/bin
+          mv goreleaser $HOME/bin/goreleaser
+          echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Run GoReleaser
-        run: goreleaser release --clean --skip-validate
+      - name: Confirm GoReleaser version
+        run: goreleaser --version
 
-      - name: Update Go pkg.go.dev
-        run: |
-          # Trigger pkg.go.dev to update
-          GOPROXY=https://proxy.golang.org go list -m github.com/adil-faiyaz98/go-builder-kit@${{ github.ref_name }}
-          # Allow some time for the proxy to update
-          sleep 10
-          # Verify the module is available
-          go list -m github.com/adil-faiyaz98/go-builder-kit@${{ github.ref_name }} || echo "Module may not be immediately available, but the update request has been sent."
+      - name: Run GoReleaser Snapshot
+        run: goreleaser release --snapshot --clean

@@ -47,7 +47,6 @@ changelog:
 
 release:
   disable: false
-  disable_validation: true
   github:
     owner: adil-faiyaz98
     name: go-builder-kit
@@ -57,7 +56,6 @@ release:
   header: |
     # {{ .ProjectName }} v{{ .Version }}
 
-    This release includes improvements to the builder pattern implementation, enhanced nested struct support, and bug fixes.
 
   footer: |
     ## Installation
@@ -70,9 +68,7 @@ release:
 
     Full documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit@{{ .Tag }})
 
-    ## Thanks
 
-    Thanks to all contributors who made this release possible!
 
 announce:
   skip: false

@@ -38,7 +38,7 @@ jobs:
 
       - name: Check for code formatting
         run: |
-          go install mvdan.cc/gofumpt@latest
+          go install mvdan.cc/gofumpt@v0.4.0
           test -z "$(gofumpt -l -d .)"
 
   test:
@@ -81,11 +81,12 @@ jobs:
           go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec -no-fail -fmt=sarif -out=gosec.sarif ./models/... ./builders/... ./pkg/...
 
-      - name: Upload gosec report
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: gosec.sarif
-          wait-for-processing: true
+      # Skipping SARIF upload due to permission issues
+      # - name: Upload gosec report
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: gosec.sarif
+      #     wait-for-processing: true
 
       - name: Run nancy for dependency scanning
         run: |

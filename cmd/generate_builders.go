@@ -7,7 +7,6 @@ import (
 	"go/token"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 	"unicode"

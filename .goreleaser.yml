@@ -1,5 +1,5 @@
-# Using version 2 as required by the latest GoReleaser
 version: 2
+
 project_name: go-builder-kit
 
 before:
@@ -8,7 +8,8 @@ before:
     - go generate ./...
 
 builds:
-  - env:
+  - id: builder
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -19,31 +20,26 @@ builds:
       - arm64
     main: ./cmd/builder-gen/main.go
     binary: builder-gen
-  - id: library
-    skip: true  # Skip binary builds for the library part
 
-# Archives configuration
+  - id: library
+    skip: true  # Intentionally skipping library-only builds
+
 archives:
   - id: default
     name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-    # Using the new format configuration as per https://goreleaser.com/deprecations/#archivesformat
-    formats: [ 'tar.gz' ]
+      {{ .ProjectName }}_{{ title .Os }}_{{ if eq .Arch "amd64" }}x86_64{{ else if eq .Arch "386" }}i386{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    format: tar.gz
     format_overrides:
       - goos: windows
-        formats: [ 'zip' ]
+        format: zip
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: checksums.txt
 
-# Snapshot configuration
-# As per https://goreleaser.com/deprecations/#snapshotname_template
 snapshot:
+  # As snapshot.name_template is deprecated, this is a cleaner way
+  # GoReleaser will infer version from git tag (or semver bump if needed)
+  # You can optionally remove this if you're not using snapshot releases
   name_template: "{{ incpatch .Version }}-next"
 
 changelog:

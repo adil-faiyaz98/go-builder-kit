@@ -27,6 +27,7 @@ jobs:
 
       - name: Run tests
         run: go test ./models/... ./builders/... ./pkg/builder/... ./tests/...
+        # Exclude cmd directory from tests
 
   build:
     name: Build
@@ -44,6 +45,7 @@ jobs:
 
       - name: Build
         run: go build -v ./models/... ./builders/... ./pkg/builder/...
+        # Exclude cmd directory from build
 
   release:
     name: Release

@@ -110,7 +110,7 @@ func processFiles(files []string, outputDir string, opts generator.Options) erro
 
 	// Write builder registry file
 	registryFile := filepath.Join(outputDir, "builder_registry.go")
-	registryCode := fmt.Sprintf("package %s\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\n// Builder is the interface that all builders must implement\ntype Builder interface {\n\tBuild() interface{}\n}\n\n// BuilderFunc is a function that creates a new builder\ntype BuilderFunc func() Builder\n\n// BuilderRegistry manages builder functions\ntype BuilderRegistry struct {\n\tregistry map[string]BuilderFunc\n\tmutex    sync.RWMutex\n}\n\n// NewBuilderRegistry creates a new BuilderRegistry\nfunc NewBuilderRegistry() *BuilderRegistry {\n\treturn &BuilderRegistry{\n\t\tregistry: make(map[string]BuilderFunc),\n\t}\n}\n\n// Register registers a builder function\nfunc (r *BuilderRegistry) Register(name string, fn BuilderFunc) {\n\tr.mutex.Lock()\n\tdefer r.mutex.Unlock()\n\tr.registry[name] = fn\n}\n\n// Get returns a builder function by name\nfunc (r *BuilderRegistry) Get(name string) (BuilderFunc, bool) {\n\tr.mutex.RLock()\n\tdefer r.mutex.RUnlock()\n\tfn, ok := r.registry[name]\n\treturn fn, ok\n}\n\n// GetAll returns all registered builder functions\nfunc (r *BuilderRegistry) GetAll() map[string]BuilderFunc {\n\tr.mutex.RLock()\n\tdefer r.mutex.RUnlock()\n\t\n\t// Create a copy to avoid concurrent map access\n\tcopy := make(map[string]BuilderFunc, len(r.registry))\n\tfor k, v := range r.registry {\n\t\tcopy[k] = v\n\t}\n\treturn copy\n}\n\n// CreateBuilder creates a new builder for the given type\nfunc (r *BuilderRegistry) CreateBuilder(typeName string) (Builder, error) {\n\tbuilderFn, ok := r.Get(typeName)\n\tif !ok {\n\t\treturn nil, fmt.Errorf(\"no builder registered for type %s\", typeName)\n\t}\n\treturn builderFn(), nil\n}\n\n// DefaultRegistry is the default builder registry\nvar DefaultRegistry = NewBuilderRegistry()\n\n// Register registers a builder function with the default registry\nfunc Register(name string, fn BuilderFunc) {\n\tDefaultRegistry.Register(name, fn)\n}\n\n// Get returns a builder function by name from the default registry\nfunc Get(name string) (BuilderFunc, bool) {\n\treturn DefaultRegistry.Get(name)\n}\n\n// GetAll returns all registered builder functions from the default registry\nfunc GetAll() map[string]BuilderFunc {\n\treturn DefaultRegistry.GetAll()\n}\n\n// CreateBuilder creates a new builder for the given type using the default registry\nfunc CreateBuilder(typeName string) (Builder, error) {\n\treturn DefaultRegistry.CreateBuilder(typeName)\n}\n", opts.PackageName)
+	registryCode := fmt.Sprintf("package %s\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\n// Builder is the interface that all builders must implement\ntype Builder interface {\n\tBuild() interface{}\n}\n\n// BuilderFunc is a function that creates a new builder\ntype BuilderFunc func() Builder\n\n// BuilderRegistry manages builder functions\ntype BuilderRegistry struct {\n\tregistry map[string]BuilderFunc\n\tmutex    sync.RWMutex\n}\n\n// NewBuilderRegistry creates a new BuilderRegistry\nfunc NewBuilderRegistry() *BuilderRegistry {\n\treturn &BuilderRegistry{\n\t\tregistry: make(map[string]BuilderFunc),\n\t}\n}\n\n// Register registers a builder function\nfunc (r *BuilderRegistry) Register(name string, fn BuilderFunc) {\n\tr.mutex.Lock()\n\tdefer r.mutex.Unlock()\n\tr.registry[name] = fn\n}\n\n// Get returns a builder function by name\nfunc (r *BuilderRegistry) Get(name string) (BuilderFunc, bool) {\n\tr.mutex.RLock()\n\tdefer r.mutex.RUnlock()\n\tfn, ok := r.registry[name]\n\treturn fn, ok\n}\n\n// GetAll returns all registered builder functions\nfunc (r *BuilderRegistry) GetAll() map[string]BuilderFunc {\n\tr.mutex.RLock()\n\tdefer r.mutex.RUnlock()\n\t\n\t// Create a copy to avoid concurrent map access\n\tcopy := make(map[string]BuilderFunc, len(r.registry))\n\tfor k, v := range r.registry {\n\t\tcopy[k] = v\n\t}\n\treturn copy\n}\n\n// CreateBuilder creates a new builder for the given type\nfunc (r *BuilderRegistry) CreateBuilder(typeName string) (Builder, error) {\n\tbuilderFn, ok := r.Get(typeName)\n\tif !ok {\n\t\treturn nil, fmt.Errorf(\"no builder registered for type %%s\", typeName)\n\t}\n\treturn builderFn(), nil\n}\n\n// DefaultRegistry is the default builder registry\nvar DefaultRegistry = NewBuilderRegistry()\n\n// Register registers a builder function with the default registry\nfunc Register(name string, fn BuilderFunc) {\n\tDefaultRegistry.Register(name, fn)\n}\n\n// Get returns a builder function by name from the default registry\nfunc Get(name string) (BuilderFunc, bool) {\n\treturn DefaultRegistry.Get(name)\n}\n\n// GetAll returns all registered builder functions from the default registry\nfunc GetAll() map[string]BuilderFunc {\n\treturn DefaultRegistry.GetAll()\n}\n\n// CreateBuilder creates a new builder for the given type using the default registry\nfunc CreateBuilder(typeName string) (Builder, error) {\n\treturn DefaultRegistry.CreateBuilder(typeName)\n}\n", opts.PackageName)
 	if err := os.WriteFile(registryFile, []byte(registryCode), 0644); err != nil {
 		return fmt.Errorf("error writing registry file %s: %w", registryFile, err)
 	}
@@ -124,34 +124,13 @@ func processFiles(files []string, outputDir string, opts generator.Options) erro
 			fmt.Printf("Processing file: %s\n", file)
 		}
 
-		// Parse the file and extract structs
-		structs, err := gen.ParseFile(file)
+		// Process the file
+		err := gen.ProcessFile(file, outputDir)
 		if err != nil {
-			return fmt.Errorf("error parsing file %s: %w", file, err)
+			return fmt.Errorf("error processing file %s: %w", file, err)
 		}
 
-		// Generate builder for each struct
-		for _, s := range structs {
-			if opts.Verbose {
-				fmt.Printf("Generating builder for struct: %s\n", s.Name)
-			}
-
-			// Generate builder code
-			code, err := gen.GenerateBuilder(s)
-			if err != nil {
-				return fmt.Errorf("error generating builder for struct %s: %w", s.Name, err)
-			}
-
-			// Write builder to file
-			outputFile := filepath.Join(outputDir, fmt.Sprintf("%s_builder.go", generator.ToSnakeCase(s.Name)))
-			if err := os.WriteFile(outputFile, []byte(code), 0644); err != nil {
-				return fmt.Errorf("error writing builder file %s: %w", outputFile, err)
-			}
-
-			if opts.Verbose {
-				fmt.Printf("Generated builder file: %s\n", outputFile)
-			}
-		}
+		// The ProcessFile method handles everything
 	}
 
 	return nil

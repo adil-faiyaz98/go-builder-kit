@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -74,7 +73,7 @@ func (g *Generator) ProcessFile(inputFile, outputDir string) error {
 
 		// Write builder to file
 		outputFile := filepath.Join(outputDir, ToSnakeCase(structType.Name.Name)+"_builder.go")
-		if err := ioutil.WriteFile(outputFile, []byte(builderCode), 0644); err != nil {
+		if err := os.WriteFile(outputFile, []byte(builderCode), 0644); err != nil {
 			return fmt.Errorf("failed to write builder file %s: %v", outputFile, err)
 		}
 
@@ -108,7 +107,7 @@ func (g *Generator) ProcessDirectory(inputDir, outputDir string, recursive bool)
 			return fmt.Errorf("failed to walk directory %s: %v", inputDir, err)
 		}
 	} else {
-		files, err := ioutil.ReadDir(inputDir)
+		files, err := os.ReadDir(inputDir)
 		if err != nil {
 			return fmt.Errorf("failed to read directory %s: %v", inputDir, err)
 		}

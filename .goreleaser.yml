@@ -46,6 +46,7 @@ changelog:
       - Merge branch
 
 release:
+  disable: false
   github:
     owner: adil-faiyaz98
     name: go-builder-kit

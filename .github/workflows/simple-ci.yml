@@ -67,17 +67,22 @@ jobs:
           go-version: "1.19"
           cache: true
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
+      # Create a release using the GitHub CLI instead of GoReleaser
+      # This avoids permission issues with the GITHUB_TOKEN
+      - name: Create GitHub Release
         env:
-          # Use GITHUB_TOKEN for authentication
-          # If you're having permission issues, you might need to create a Personal Access Token (PAT)
-          # with repo scope and add it as a secret named GH_PAT
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Install GitHub CLI
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+
+          # Create a release using the GitHub CLI
+          gh release create ${{ github.ref_name }} \
+            --title "${{ github.ref_name }}" \
+            --generate-notes
 
       - name: Update Go pkg.go.dev
         run: |

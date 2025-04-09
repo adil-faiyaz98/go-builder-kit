@@ -10,6 +10,9 @@ on:
 
 permissions:
   contents: write
+  packages: write
+  issues: write
+  pull-requests: write
 
 jobs:
   test:
@@ -64,20 +67,14 @@ jobs:
           go-version: "1.19"
           cache: true
 
-      - name: Create GitHub Release
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Install GitHub CLI
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-
-          # Create a release using the GitHub CLI
-          gh release create ${{ github.ref_name }} \
-            --title "${{ github.ref_name }}" \
-            --generate-notes
 
       - name: Update Go pkg.go.dev
         run: |

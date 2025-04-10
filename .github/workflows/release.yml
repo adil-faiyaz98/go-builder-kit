@@ -12,20 +12,21 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.21"
 
-      - name: Install GoReleaser Nightly and add to PATH
+      - name: Install GoReleaser (nightly)
+        # Install GoReleaser nightly version
         run: |
           curl -sL https://github.com/goreleaser/goreleaser/releases/download/nightly/goreleaser_Linux_x86_64.tar.gz -o goreleaser.tar.gz
           tar -xzf goreleaser.tar.gz
           chmod +x goreleaser
-          mkdir -p $HOME/bin
-          mv goreleaser $HOME/bin/goreleaser
-          echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
+          sudo mv goreleaser /usr/local/bin/goreleaser
 
       - name: Confirm GoReleaser version
         run: goreleaser --version

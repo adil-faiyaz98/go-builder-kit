@@ -8,18 +8,10 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
-
-    env:
-      GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -40,3 +32,5 @@ jobs:
 
       - name: Run GoReleaser Snapshot
         run: goreleaser release --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}

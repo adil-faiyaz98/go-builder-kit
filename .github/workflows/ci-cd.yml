@@ -198,9 +198,9 @@ jobs:
 
       - name: Generate documentation
         run: |
-          go install golang.org/x/tools/cmd/godoc@v.11.0
+          go install golang.org/x/tools/cmd/godoc@v0.11.0
           mkdir -p docs
-          godoc -html -url=/pkg/github.com/adil-faiyaz98/go-builder-kit > docs/index.html
+          godoc -url=/pkg/github.com/adil-faiyaz98/go-builder-kit > docs/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

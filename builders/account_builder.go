@@ -33,14 +33,6 @@ func NewAccountBuilder() *AccountBuilder {
 	}
 }
 
-// NewAccountBuilderWithDefaults creates a new AccountBuilder with sensible defaults
-func NewAccountBuilderWithDefaults() *AccountBuilder {
-	builder := NewAccountBuilder()
-	builder.account.Status = "active"
-	builder.account.Currency = "USD"
-	return builder
-}
-
 // WithID sets the ID
 func (b *AccountBuilder) WithID(id string) *AccountBuilder {
 	b.account.ID = id
@@ -83,8 +75,14 @@ func (b *AccountBuilder) WithStatus(status string) *AccountBuilder {
 	return b
 }
 
-// WithTransaction adds a transaction
-func (b *AccountBuilder) WithTransaction(transaction any) *AccountBuilder {
+// WithTransactions sets the Transactions
+func (b *AccountBuilder) WithTransactions(transactions []any) *AccountBuilder {
+	b.account.Transactions = transactions
+	return b
+}
+
+// AddTransaction adds a transaction to the Transactions slice
+func (b *AccountBuilder) AddTransaction(transaction any) *AccountBuilder {
 	b.account.Transactions = append(b.account.Transactions, transaction)
 	return b
 }
@@ -95,14 +93,20 @@ func (b *AccountBuilder) WithInterestRate(interestRate float64) *AccountBuilder 
 	return b
 }
 
-// WithIsJoint sets the IsJoint
+// WithIsJoint sets the IsJoint flag
 func (b *AccountBuilder) WithIsJoint(isJoint bool) *AccountBuilder {
 	b.account.IsJoint = isJoint
 	return b
 }
 
-// WithCoOwner adds a co-owner
-func (b *AccountBuilder) WithCoOwner(coOwner any) *AccountBuilder {
+// WithCoOwners sets the CoOwners
+func (b *AccountBuilder) WithCoOwners(coOwners []any) *AccountBuilder {
+	b.account.CoOwners = coOwners
+	return b
+}
+
+// AddCoOwner adds a co-owner to the CoOwners slice
+func (b *AccountBuilder) AddCoOwner(coOwner any) *AccountBuilder {
 	b.account.CoOwners = append(b.account.CoOwners, coOwner)
 	return b
 }
@@ -120,7 +124,7 @@ func (b *AccountBuilder) WithValidation(validationFunc func(*models.Account) err
 }
 
 // Build builds the Account
-func (b *AccountBuilder) Build() any {
+func (b *AccountBuilder) Build() interface{} {
 	return b.account
 }
 
@@ -136,7 +140,7 @@ func (b *AccountBuilder) BuildAndValidate() (*models.Account, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(account); err != nil {
-			return account, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -152,12 +156,12 @@ func (b *AccountBuilder) BuildAndValidate() (*models.Account, error) {
 func (b *AccountBuilder) MustBuild() *models.Account {
 	account, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Account validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return account
 }
 
-// Clone creates a deep copy of the AccountBuilder
+// Clone creates a deep copy of the builder
 func (b *AccountBuilder) Clone() *AccountBuilder {
 	clonedAccount := *b.account
 	return &AccountBuilder{

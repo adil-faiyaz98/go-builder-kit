@@ -46,8 +46,7 @@ func (b *EducationBuilder) WithInstitution(institution string) *EducationBuilder
 
 // WithLocation sets the Location
 func (b *EducationBuilder) WithLocation(location *AddressBuilder) *EducationBuilder {
-	builtValue := location.Build().(*models.Address)
-	b.education.Location = builtValue
+	b.education.Location = location.BuildPtr()
 	return b
 }
 
@@ -69,8 +68,14 @@ func (b *EducationBuilder) WithGPA(gpa float64) *EducationBuilder {
 	return b
 }
 
-// WithHonor adds an honor to the Honors slice
-func (b *EducationBuilder) WithHonor(honor string) *EducationBuilder {
+// WithHonors sets the Honors
+func (b *EducationBuilder) WithHonors(honors []string) *EducationBuilder {
+	b.education.Honors = honors
+	return b
+}
+
+// AddHonor adds an honor to the Honors slice
+func (b *EducationBuilder) AddHonor(honor string) *EducationBuilder {
 	b.education.Honors = append(b.education.Honors, honor)
 	return b
 }
@@ -87,15 +92,26 @@ func (b *EducationBuilder) WithMinor(minor string) *EducationBuilder {
 	return b
 }
 
-// WithCourse adds a course to the Courses slice
-func (b *EducationBuilder) WithCourse(course *CourseBuilder) *EducationBuilder {
-	builtValue := course.Build().(*models.Course)
-	b.education.Courses = append(b.education.Courses, builtValue)
+// WithCourses sets the Courses
+func (b *EducationBuilder) WithCourses(courses []*models.Course) *EducationBuilder {
+	b.education.Courses = courses
 	return b
 }
 
-// WithActivity adds an activity to the Activities slice
-func (b *EducationBuilder) WithActivity(activity string) *EducationBuilder {
+// AddCourse adds a course to the Courses slice
+func (b *EducationBuilder) AddCourse(course *CourseBuilder) *EducationBuilder {
+	b.education.Courses = append(b.education.Courses, course.BuildPtr())
+	return b
+}
+
+// WithActivities sets the Activities
+func (b *EducationBuilder) WithActivities(activities []string) *EducationBuilder {
+	b.education.Activities = activities
+	return b
+}
+
+// AddActivity adds an activity to the Activities slice
+func (b *EducationBuilder) AddActivity(activity string) *EducationBuilder {
 	b.education.Activities = append(b.education.Activities, activity)
 	return b
 }
@@ -107,7 +123,7 @@ func (b *EducationBuilder) WithValidation(validationFunc func(*models.Education)
 }
 
 // Build builds the Education
-func (b *EducationBuilder) Build() any {
+func (b *EducationBuilder) Build() interface{} {
 	return b.education
 }
 
@@ -123,7 +139,7 @@ func (b *EducationBuilder) BuildAndValidate() (*models.Education, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(education); err != nil {
-			return education, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -139,12 +155,12 @@ func (b *EducationBuilder) BuildAndValidate() (*models.Education, error) {
 func (b *EducationBuilder) MustBuild() *models.Education {
 	education, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Education validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return education
 }
 
-// Clone creates a deep copy of the EducationBuilder
+// Clone creates a deep copy of the builder
 func (b *EducationBuilder) Clone() *EducationBuilder {
 	clonedEducation := *b.education
 	return &EducationBuilder{

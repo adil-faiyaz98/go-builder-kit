@@ -2,13 +2,12 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // CompanyBuilder builds a Company model
 type CompanyBuilder struct {
-	company         *models.Company
+	company        *models.Company
 	validationFuncs []func(*models.Company) error
 }
 
@@ -16,6 +15,7 @@ type CompanyBuilder struct {
 func NewCompanyBuilder() *CompanyBuilder {
 	return &CompanyBuilder{
 		company: &models.Company{
+			ID:          "",
 			Name:        "",
 			Industry:    "",
 			Description: "",
@@ -27,9 +27,16 @@ func NewCompanyBuilder() *CompanyBuilder {
 			Revenue:     "",
 			Public:      false,
 			StockSymbol: "",
+			Departments: []*models.Department{},
 		},
 		validationFuncs: []func(*models.Company) error{},
 	}
+}
+
+// WithID sets the ID
+func (b *CompanyBuilder) WithID(id string) *CompanyBuilder {
+	b.company.ID = id
+	return b
 }
 
 // WithName sets the Name
@@ -64,15 +71,13 @@ func (b *CompanyBuilder) WithWebsite(website string) *CompanyBuilder {
 
 // WithAddress sets the Address
 func (b *CompanyBuilder) WithAddress(address *AddressBuilder) *CompanyBuilder {
-	builtValue := address.Build().(*models.Address)
-	b.company.Address = builtValue
+	b.company.Address = address.BuildPtr()
 	return b
 }
 
 // WithLocation sets the Location
 func (b *CompanyBuilder) WithLocation(location *AddressBuilder) *CompanyBuilder {
-	builtValue := location.Build().(*models.Address)
-	b.company.Location = builtValue
+	b.company.Location = location.BuildPtr()
 	return b
 }
 
@@ -88,7 +93,7 @@ func (b *CompanyBuilder) WithRevenue(revenue string) *CompanyBuilder {
 	return b
 }
 
-// WithPublic sets the Public
+// WithPublic sets the Public flag
 func (b *CompanyBuilder) WithPublic(public bool) *CompanyBuilder {
 	b.company.Public = public
 	return b
@@ -100,6 +105,18 @@ func (b *CompanyBuilder) WithStockSymbol(stockSymbol string) *CompanyBuilder {
 	return b
 }
 
+// WithDepartments sets the Departments
+func (b *CompanyBuilder) WithDepartments(departments []*models.Department) *CompanyBuilder {
+	b.company.Departments = departments
+	return b
+}
+
+// AddDepartment adds a department to the Departments slice
+func (b *CompanyBuilder) AddDepartment(department *DepartmentBuilder) *CompanyBuilder {
+	b.company.Departments = append(b.company.Departments, department.BuildPtr())
+	return b
+}
+
 // WithValidation adds a custom validation function
 func (b *CompanyBuilder) WithValidation(validationFunc func(*models.Company) error) *CompanyBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -107,7 +124,7 @@ func (b *CompanyBuilder) WithValidation(validationFunc func(*models.Company) err
 }
 
 // Build builds the Company
-func (b *CompanyBuilder) Build() any {
+func (b *CompanyBuilder) Build() interface{} {
 	return b.company
 }
 
@@ -123,7 +140,7 @@ func (b *CompanyBuilder) BuildAndValidate() (*models.Company, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(company); err != nil {
-			return company, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -139,16 +156,16 @@ func (b *CompanyBuilder) BuildAndValidate() (*models.Company, error) {
 func (b *CompanyBuilder) MustBuild() *models.Company {
 	company, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Company validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return company
 }
 
-// Clone creates a deep copy of the CompanyBuilder
+// Clone creates a deep copy of the builder
 func (b *CompanyBuilder) Clone() *CompanyBuilder {
 	clonedCompany := *b.company
 	return &CompanyBuilder{
-		company:         &clonedCompany,
+		company:        &clonedCompany,
 		validationFuncs: append([]func(*models.Company) error{}, b.validationFuncs...),
 	}
 }

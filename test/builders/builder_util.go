@@ -1,9 +1,6 @@
-package generator
+package builders
 
-// This file contains utility templates for generated builders
 
-// UtilTemplate contains utility functions to include in generated builders
-const UtilTemplate = `
 // BuilderUtil provides utility functions for builders
 type BuilderUtil struct{}
 
@@ -69,4 +66,4 @@ func (u *BuilderUtil) MergeStringSlices(s1, s2 []string) []string {
 	copy(result[len(s1):], s2)
 
 	return result
-}`
+}

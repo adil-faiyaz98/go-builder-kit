@@ -30,16 +30,21 @@ func NewEmploymentBuilder() *EmploymentBuilder {
 	}
 }
 
+// WithCompany sets the Company
+func (b *EmploymentBuilder) WithCompany(company *CompanyBuilder) *EmploymentBuilder {
+	b.employment.Company = company.BuildPtr()
+	return b
+}
+
 // WithPosition sets the Position
 func (b *EmploymentBuilder) WithPosition(position string) *EmploymentBuilder {
 	b.employment.Position = position
 	return b
 }
 
-// WithCompany sets the Company
-func (b *EmploymentBuilder) WithCompany(company *CompanyBuilder) *EmploymentBuilder {
-	builtValue := company.Build().(*models.Company)
-	b.employment.Company = builtValue
+// WithDepartment sets the Department
+func (b *EmploymentBuilder) WithDepartment(department string) *EmploymentBuilder {
+	b.employment.Department = department
 	return b
 }
 
@@ -55,21 +60,15 @@ func (b *EmploymentBuilder) WithEndDate(endDate string) *EmploymentBuilder {
 	return b
 }
 
-// WithIsCurrent sets the IsCurrent
-func (b *EmploymentBuilder) WithIsCurrent(isCurrent bool) *EmploymentBuilder {
-	b.employment.IsCurrent = isCurrent
-	return b
-}
-
 // WithSalary sets the Salary
 func (b *EmploymentBuilder) WithSalary(salary float64) *EmploymentBuilder {
 	b.employment.Salary = salary
 	return b
 }
 
-// WithDepartment sets the Department
-func (b *EmploymentBuilder) WithDepartment(department string) *EmploymentBuilder {
-	b.employment.Department = department
+// WithIsCurrent sets the IsCurrent flag
+func (b *EmploymentBuilder) WithIsCurrent(isCurrent bool) *EmploymentBuilder {
+	b.employment.IsCurrent = isCurrent
 	return b
 }
 
@@ -79,8 +78,14 @@ func (b *EmploymentBuilder) WithSupervisor(supervisor any) *EmploymentBuilder {
 	return b
 }
 
-// WithSubordinate adds a subordinate to the Subordinates slice
-func (b *EmploymentBuilder) WithSubordinate(subordinate any) *EmploymentBuilder {
+// WithSubordinates sets the Subordinates
+func (b *EmploymentBuilder) WithSubordinates(subordinates []any) *EmploymentBuilder {
+	b.employment.Subordinates = subordinates
+	return b
+}
+
+// AddSubordinate adds a subordinate to the Subordinates slice
+func (b *EmploymentBuilder) AddSubordinate(subordinate any) *EmploymentBuilder {
 	b.employment.Subordinates = append(b.employment.Subordinates, subordinate)
 	return b
 }
@@ -92,7 +97,7 @@ func (b *EmploymentBuilder) WithValidation(validationFunc func(*models.Employmen
 }
 
 // Build builds the Employment
-func (b *EmploymentBuilder) Build() any {
+func (b *EmploymentBuilder) Build() interface{} {
 	return b.employment
 }
 
@@ -108,7 +113,7 @@ func (b *EmploymentBuilder) BuildAndValidate() (*models.Employment, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(employment); err != nil {
-			return employment, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -124,12 +129,12 @@ func (b *EmploymentBuilder) BuildAndValidate() (*models.Employment, error) {
 func (b *EmploymentBuilder) MustBuild() *models.Employment {
 	employment, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Employment validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return employment
 }
 
-// Clone creates a deep copy of the EmploymentBuilder
+// Clone creates a deep copy of the builder
 func (b *EmploymentBuilder) Clone() *EmploymentBuilder {
 	clonedEmployment := *b.employment
 	return &EmploymentBuilder{

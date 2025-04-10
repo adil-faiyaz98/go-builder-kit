@@ -2,13 +2,12 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // CourseBuilder builds a Course model
 type CourseBuilder struct {
-	course          *models.Course
+	course         *models.Course
 	validationFuncs []func(*models.Course) error
 }
 
@@ -84,7 +83,7 @@ func (b *CourseBuilder) WithValidation(validationFunc func(*models.Course) error
 }
 
 // Build builds the Course
-func (b *CourseBuilder) Build() any {
+func (b *CourseBuilder) Build() interface{} {
 	return b.course
 }
 
@@ -100,7 +99,7 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(course); err != nil {
-			return course, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -116,16 +115,16 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 func (b *CourseBuilder) MustBuild() *models.Course {
 	course, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Course validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return course
 }
 
-// Clone creates a deep copy of the CourseBuilder
+// Clone creates a deep copy of the builder
 func (b *CourseBuilder) Clone() *CourseBuilder {
 	clonedCourse := *b.course
 	return &CourseBuilder{
-		course:          &clonedCourse,
+		course:         &clonedCourse,
 		validationFuncs: append([]func(*models.Course) error{}, b.validationFuncs...),
 	}
 }

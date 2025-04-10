@@ -2,13 +2,12 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // TaskBuilder builds a Task model
 type TaskBuilder struct {
-	task            *models.Task
+	task           *models.Task
 	validationFuncs []func(*models.Task) error
 }
 
@@ -16,40 +15,44 @@ type TaskBuilder struct {
 func NewTaskBuilder() *TaskBuilder {
 	return &TaskBuilder{
 		task: &models.Task{
-			Name:        "",
+			ID:          "",
+			Title:       "",
 			Description: "",
-			StartDate:   "",
-			EndDate:     "",
 			Status:      "",
 			Priority:    "",
-			Assignee:    nil,
-			Subtasks:    []*models.Task{},
+			DueDate:     "",
+			AssignedTo:  "",
+			CreatedBy:   "",
+			CreatedAt:   "",
+			UpdatedAt:   "",
+			Tags:        []string{},
+			Comments:    []string{},
+			Attachments: []string{},
+			SubTasks:    []*models.Task{},
+			ParentTask:  nil,
+			EstimatedHours: 0.0,
+			ActualHours: 0.0,
+			Progress:    0.0,
 		},
 		validationFuncs: []func(*models.Task) error{},
 	}
 }
 
-// WithName sets the Name
-func (b *TaskBuilder) WithName(name string) *TaskBuilder {
-	b.task.Name = name
+// WithID sets the ID
+func (b *TaskBuilder) WithID(id string) *TaskBuilder {
+	b.task.ID = id
+	return b
+}
+
+// WithTitle sets the Title
+func (b *TaskBuilder) WithTitle(title string) *TaskBuilder {
+	b.task.Title = title
 	return b
 }
 
 // WithDescription sets the Description
 func (b *TaskBuilder) WithDescription(description string) *TaskBuilder {
 	b.task.Description = description
-	return b
-}
-
-// WithStartDate sets the StartDate
-func (b *TaskBuilder) WithStartDate(startDate string) *TaskBuilder {
-	b.task.StartDate = startDate
-	return b
-}
-
-// WithEndDate sets the EndDate
-func (b *TaskBuilder) WithEndDate(endDate string) *TaskBuilder {
-	b.task.EndDate = endDate
 	return b
 }
 
@@ -65,16 +68,105 @@ func (b *TaskBuilder) WithPriority(priority string) *TaskBuilder {
 	return b
 }
 
-// WithAssignee sets the Assignee
-func (b *TaskBuilder) WithAssignee(assignee any) *TaskBuilder {
-	b.task.Assignee = assignee
+// WithDueDate sets the DueDate
+func (b *TaskBuilder) WithDueDate(dueDate string) *TaskBuilder {
+	b.task.DueDate = dueDate
 	return b
 }
 
-// WithSubtask adds a subtask to the Subtasks slice
-func (b *TaskBuilder) WithSubtask(subtask *TaskBuilder) *TaskBuilder {
-	builtValue := subtask.Build().(*models.Task)
-	b.task.Subtasks = append(b.task.Subtasks, builtValue)
+// WithAssignedTo sets the AssignedTo
+func (b *TaskBuilder) WithAssignedTo(assignedTo string) *TaskBuilder {
+	b.task.AssignedTo = assignedTo
+	return b
+}
+
+// WithCreatedBy sets the CreatedBy
+func (b *TaskBuilder) WithCreatedBy(createdBy string) *TaskBuilder {
+	b.task.CreatedBy = createdBy
+	return b
+}
+
+// WithCreatedAt sets the CreatedAt
+func (b *TaskBuilder) WithCreatedAt(createdAt string) *TaskBuilder {
+	b.task.CreatedAt = createdAt
+	return b
+}
+
+// WithUpdatedAt sets the UpdatedAt
+func (b *TaskBuilder) WithUpdatedAt(updatedAt string) *TaskBuilder {
+	b.task.UpdatedAt = updatedAt
+	return b
+}
+
+// WithTags sets the Tags
+func (b *TaskBuilder) WithTags(tags []string) *TaskBuilder {
+	b.task.Tags = tags
+	return b
+}
+
+// AddTag adds a tag to the Tags slice
+func (b *TaskBuilder) AddTag(tag string) *TaskBuilder {
+	b.task.Tags = append(b.task.Tags, tag)
+	return b
+}
+
+// WithComments sets the Comments
+func (b *TaskBuilder) WithComments(comments []string) *TaskBuilder {
+	b.task.Comments = comments
+	return b
+}
+
+// AddComment adds a comment to the Comments slice
+func (b *TaskBuilder) AddComment(comment string) *TaskBuilder {
+	b.task.Comments = append(b.task.Comments, comment)
+	return b
+}
+
+// WithAttachments sets the Attachments
+func (b *TaskBuilder) WithAttachments(attachments []string) *TaskBuilder {
+	b.task.Attachments = attachments
+	return b
+}
+
+// AddAttachment adds an attachment to the Attachments slice
+func (b *TaskBuilder) AddAttachment(attachment string) *TaskBuilder {
+	b.task.Attachments = append(b.task.Attachments, attachment)
+	return b
+}
+
+// WithSubTasks sets the SubTasks
+func (b *TaskBuilder) WithSubTasks(subTasks []*models.Task) *TaskBuilder {
+	b.task.SubTasks = subTasks
+	return b
+}
+
+// AddSubTask adds a sub-task to the SubTasks slice
+func (b *TaskBuilder) AddSubTask(subTask *TaskBuilder) *TaskBuilder {
+	b.task.SubTasks = append(b.task.SubTasks, subTask.BuildPtr())
+	return b
+}
+
+// WithParentTask sets the ParentTask
+func (b *TaskBuilder) WithParentTask(parentTask *TaskBuilder) *TaskBuilder {
+	b.task.ParentTask = parentTask.BuildPtr()
+	return b
+}
+
+// WithEstimatedHours sets the EstimatedHours
+func (b *TaskBuilder) WithEstimatedHours(estimatedHours float64) *TaskBuilder {
+	b.task.EstimatedHours = estimatedHours
+	return b
+}
+
+// WithActualHours sets the ActualHours
+func (b *TaskBuilder) WithActualHours(actualHours float64) *TaskBuilder {
+	b.task.ActualHours = actualHours
+	return b
+}
+
+// WithProgress sets the Progress
+func (b *TaskBuilder) WithProgress(progress float64) *TaskBuilder {
+	b.task.Progress = progress
 	return b
 }
 
@@ -85,7 +177,7 @@ func (b *TaskBuilder) WithValidation(validationFunc func(*models.Task) error) *T
 }
 
 // Build builds the Task
-func (b *TaskBuilder) Build() any {
+func (b *TaskBuilder) Build() interface{} {
 	return b.task
 }
 
@@ -101,7 +193,7 @@ func (b *TaskBuilder) BuildAndValidate() (*models.Task, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(task); err != nil {
-			return task, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -117,16 +209,16 @@ func (b *TaskBuilder) BuildAndValidate() (*models.Task, error) {
 func (b *TaskBuilder) MustBuild() *models.Task {
 	task, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Task validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return task
 }
 
-// Clone creates a deep copy of the TaskBuilder
+// Clone creates a deep copy of the builder
 func (b *TaskBuilder) Clone() *TaskBuilder {
 	clonedTask := *b.task
 	return &TaskBuilder{
-		task:            &clonedTask,
+		task:           &clonedTask,
 		validationFuncs: append([]func(*models.Task) error{}, b.validationFuncs...),
 	}
 }

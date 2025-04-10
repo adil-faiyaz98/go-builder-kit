@@ -2,13 +2,12 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // PersonalPreferencesBuilder builds a PersonalPreferences model
 type PersonalPreferencesBuilder struct {
-	preferences     *models.PersonalPreferences
+	preferences    *models.PersonalPreferences
 	validationFuncs []func(*models.PersonalPreferences) error
 }
 
@@ -50,6 +49,12 @@ func (b *PersonalPreferencesBuilder) WithFavoriteColors(favoriteColors []string)
 	return b
 }
 
+// AddFavoriteColor adds a favorite color to the FavoriteColors slice
+func (b *PersonalPreferencesBuilder) AddFavoriteColor(favoriteColor string) *PersonalPreferencesBuilder {
+	b.preferences.FavoriteColors = append(b.preferences.FavoriteColors, favoriteColor)
+	return b
+}
+
 // WithFavoriteFood sets the FavoriteFood
 func (b *PersonalPreferencesBuilder) WithFavoriteFood(favoriteFood string) *PersonalPreferencesBuilder {
 	b.preferences.FavoriteFood = favoriteFood
@@ -59,6 +64,12 @@ func (b *PersonalPreferencesBuilder) WithFavoriteFood(favoriteFood string) *Pers
 // WithFavoriteFoods sets the FavoriteFoods
 func (b *PersonalPreferencesBuilder) WithFavoriteFoods(favoriteFoods []string) *PersonalPreferencesBuilder {
 	b.preferences.FavoriteFoods = favoriteFoods
+	return b
+}
+
+// AddFavoriteFood adds a favorite food to the FavoriteFoods slice
+func (b *PersonalPreferencesBuilder) AddFavoriteFood(favoriteFood string) *PersonalPreferencesBuilder {
+	b.preferences.FavoriteFoods = append(b.preferences.FavoriteFoods, favoriteFood)
 	return b
 }
 
@@ -74,6 +85,12 @@ func (b *PersonalPreferencesBuilder) WithMusicTastes(musicTastes []string) *Pers
 	return b
 }
 
+// AddMusicTaste adds a music taste to the MusicTastes slice
+func (b *PersonalPreferencesBuilder) AddMusicTaste(musicTaste string) *PersonalPreferencesBuilder {
+	b.preferences.MusicTastes = append(b.preferences.MusicTastes, musicTaste)
+	return b
+}
+
 // WithFavoriteMovie sets the FavoriteMovie
 func (b *PersonalPreferencesBuilder) WithFavoriteMovie(favoriteMovie string) *PersonalPreferencesBuilder {
 	b.preferences.FavoriteMovie = favoriteMovie
@@ -86,6 +103,12 @@ func (b *PersonalPreferencesBuilder) WithMovieGenres(movieGenres []string) *Pers
 	return b
 }
 
+// AddMovieGenre adds a movie genre to the MovieGenres slice
+func (b *PersonalPreferencesBuilder) AddMovieGenre(movieGenre string) *PersonalPreferencesBuilder {
+	b.preferences.MovieGenres = append(b.preferences.MovieGenres, movieGenre)
+	return b
+}
+
 // WithFavoriteBook sets the FavoriteBook
 func (b *PersonalPreferencesBuilder) WithFavoriteBook(favoriteBook string) *PersonalPreferencesBuilder {
 	b.preferences.FavoriteBook = favoriteBook
@@ -95,6 +118,12 @@ func (b *PersonalPreferencesBuilder) WithFavoriteBook(favoriteBook string) *Pers
 // WithBookGenres sets the BookGenres
 func (b *PersonalPreferencesBuilder) WithBookGenres(bookGenres []string) *PersonalPreferencesBuilder {
 	b.preferences.BookGenres = bookGenres
+	return b
+}
+
+// AddBookGenre adds a book genre to the BookGenres slice
+func (b *PersonalPreferencesBuilder) AddBookGenre(bookGenre string) *PersonalPreferencesBuilder {
+	b.preferences.BookGenres = append(b.preferences.BookGenres, bookGenre)
 	return b
 }
 
@@ -116,9 +145,21 @@ func (b *PersonalPreferencesBuilder) WithHobbies(hobbies []string) *PersonalPref
 	return b
 }
 
+// AddHobby adds a hobby to the Hobbies slice
+func (b *PersonalPreferencesBuilder) AddHobby(hobby string) *PersonalPreferencesBuilder {
+	b.preferences.Hobbies = append(b.preferences.Hobbies, hobby)
+	return b
+}
+
 // WithInterests sets the Interests
 func (b *PersonalPreferencesBuilder) WithInterests(interests []string) *PersonalPreferencesBuilder {
 	b.preferences.Interests = interests
+	return b
+}
+
+// AddInterest adds an interest to the Interests slice
+func (b *PersonalPreferencesBuilder) AddInterest(interest string) *PersonalPreferencesBuilder {
+	b.preferences.Interests = append(b.preferences.Interests, interest)
 	return b
 }
 
@@ -128,8 +169,20 @@ func (b *PersonalPreferencesBuilder) WithLanguages(languages []string) *Personal
 	return b
 }
 
-// WithTravelPreference adds a travel preference
-func (b *PersonalPreferencesBuilder) WithTravelPreference(key, value string) *PersonalPreferencesBuilder {
+// AddLanguage adds a language to the Languages slice
+func (b *PersonalPreferencesBuilder) AddLanguage(language string) *PersonalPreferencesBuilder {
+	b.preferences.Languages = append(b.preferences.Languages, language)
+	return b
+}
+
+// WithTravelPreferences sets the TravelPreferences
+func (b *PersonalPreferencesBuilder) WithTravelPreferences(travelPreferences map[string]string) *PersonalPreferencesBuilder {
+	b.preferences.TravelPreferences = travelPreferences
+	return b
+}
+
+// AddTravelPreference adds a travel preference to the TravelPreferences map
+func (b *PersonalPreferencesBuilder) AddTravelPreference(key, value string) *PersonalPreferencesBuilder {
 	if b.preferences.TravelPreferences == nil {
 		b.preferences.TravelPreferences = make(map[string]string)
 	}
@@ -137,8 +190,14 @@ func (b *PersonalPreferencesBuilder) WithTravelPreference(key, value string) *Pe
 	return b
 }
 
-// WithShoppingPreference adds a shopping preference
-func (b *PersonalPreferencesBuilder) WithShoppingPreference(key string, value bool) *PersonalPreferencesBuilder {
+// WithShoppingPreferences sets the ShoppingPreferences
+func (b *PersonalPreferencesBuilder) WithShoppingPreferences(shoppingPreferences map[string]bool) *PersonalPreferencesBuilder {
+	b.preferences.ShoppingPreferences = shoppingPreferences
+	return b
+}
+
+// AddShoppingPreference adds a shopping preference to the ShoppingPreferences map
+func (b *PersonalPreferencesBuilder) AddShoppingPreference(key string, value bool) *PersonalPreferencesBuilder {
 	if b.preferences.ShoppingPreferences == nil {
 		b.preferences.ShoppingPreferences = make(map[string]bool)
 	}
@@ -153,7 +212,7 @@ func (b *PersonalPreferencesBuilder) WithValidation(validationFunc func(*models.
 }
 
 // Build builds the PersonalPreferences
-func (b *PersonalPreferencesBuilder) Build() any {
+func (b *PersonalPreferencesBuilder) Build() interface{} {
 	return b.preferences
 }
 
@@ -169,7 +228,7 @@ func (b *PersonalPreferencesBuilder) BuildAndValidate() (*models.PersonalPrefere
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(preferences); err != nil {
-			return preferences, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -185,16 +244,16 @@ func (b *PersonalPreferencesBuilder) BuildAndValidate() (*models.PersonalPrefere
 func (b *PersonalPreferencesBuilder) MustBuild() *models.PersonalPreferences {
 	preferences, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("PersonalPreferences validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return preferences
 }
 
-// Clone creates a deep copy of the PersonalPreferencesBuilder
+// Clone creates a deep copy of the builder
 func (b *PersonalPreferencesBuilder) Clone() *PersonalPreferencesBuilder {
 	clonedPreferences := *b.preferences
 	return &PersonalPreferencesBuilder{
-		preferences:     &clonedPreferences,
+		preferences:    &clonedPreferences,
 		validationFuncs: append([]func(*models.PersonalPreferences) error{}, b.validationFuncs...),
 	}
 }

@@ -2,13 +2,12 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // FamilyMemberBuilder builds a FamilyMember model
 type FamilyMemberBuilder struct {
-	familyMember    *models.FamilyMember
+	familyMember   *models.FamilyMember
 	validationFuncs []func(*models.FamilyMember) error
 }
 
@@ -16,23 +15,22 @@ type FamilyMemberBuilder struct {
 func NewFamilyMemberBuilder() *FamilyMemberBuilder {
 	return &FamilyMemberBuilder{
 		familyMember: &models.FamilyMember{
-			Relationship: "",
 			Person:       nil,
+			Relationship: "",
 		},
 		validationFuncs: []func(*models.FamilyMember) error{},
 	}
 }
 
-// WithRelationship sets the Relationship
-func (b *FamilyMemberBuilder) WithRelationship(relationship string) *FamilyMemberBuilder {
-	b.familyMember.Relationship = relationship
+// WithPerson sets the Person
+func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBuilder {
+	b.familyMember.Person = person.BuildPtr()
 	return b
 }
 
-// WithPerson sets the Person
-func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBuilder {
-	builtValue := person.Build().(*models.Person)
-	b.familyMember.Person = builtValue
+// WithRelationship sets the Relationship
+func (b *FamilyMemberBuilder) WithRelationship(relationship string) *FamilyMemberBuilder {
+	b.familyMember.Relationship = relationship
 	return b
 }
 
@@ -43,7 +41,7 @@ func (b *FamilyMemberBuilder) WithValidation(validationFunc func(*models.FamilyM
 }
 
 // Build builds the FamilyMember
-func (b *FamilyMemberBuilder) Build() any {
+func (b *FamilyMemberBuilder) Build() interface{} {
 	return b.familyMember
 }
 
@@ -59,7 +57,7 @@ func (b *FamilyMemberBuilder) BuildAndValidate() (*models.FamilyMember, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(familyMember); err != nil {
-			return familyMember, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -75,16 +73,16 @@ func (b *FamilyMemberBuilder) BuildAndValidate() (*models.FamilyMember, error) {
 func (b *FamilyMemberBuilder) MustBuild() *models.FamilyMember {
 	familyMember, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("FamilyMember validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return familyMember
 }
 
-// Clone creates a deep copy of the FamilyMemberBuilder
+// Clone creates a deep copy of the builder
 func (b *FamilyMemberBuilder) Clone() *FamilyMemberBuilder {
 	clonedFamilyMember := *b.familyMember
 	return &FamilyMemberBuilder{
-		familyMember:    &clonedFamilyMember,
+		familyMember:   &clonedFamilyMember,
 		validationFuncs: append([]func(*models.FamilyMember) error{}, b.validationFuncs...),
 	}
 }

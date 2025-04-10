@@ -44,32 +44,54 @@ func (b *BankBuilder) WithBranchCode(branchCode string) *BankBuilder {
 
 // WithAddress sets the Address
 func (b *BankBuilder) WithAddress(address *AddressBuilder) *BankBuilder {
-	builtValue := address.Build().(*models.Address)
-	b.bank.Address = builtValue
+	b.bank.Address = address.BuildPtr()
 	return b
 }
 
-// WithAccount adds an account to the Accounts slice
-func (b *BankBuilder) WithAccount(account *AccountBuilder) *BankBuilder {
-	builtValue := account.Build().(*models.Account)
-	b.bank.Accounts = append(b.bank.Accounts, builtValue)
+// WithAccounts sets the Accounts
+func (b *BankBuilder) WithAccounts(accounts []*models.Account) *BankBuilder {
+	b.bank.Accounts = accounts
 	return b
 }
 
-// WithStock adds a stock to the Stocks slice
-func (b *BankBuilder) WithStock(stock any) *BankBuilder {
+// AddAccount adds an account to the Accounts slice
+func (b *BankBuilder) AddAccount(account *AccountBuilder) *BankBuilder {
+	b.bank.Accounts = append(b.bank.Accounts, account.BuildPtr())
+	return b
+}
+
+// WithStocks sets the Stocks
+func (b *BankBuilder) WithStocks(stocks []any) *BankBuilder {
+	b.bank.Stocks = stocks
+	return b
+}
+
+// AddStock adds a stock to the Stocks slice
+func (b *BankBuilder) AddStock(stock any) *BankBuilder {
 	b.bank.Stocks = append(b.bank.Stocks, stock)
 	return b
 }
 
-// WithLoan adds a loan to the Loans slice
-func (b *BankBuilder) WithLoan(loan any) *BankBuilder {
+// WithLoans sets the Loans
+func (b *BankBuilder) WithLoans(loans []any) *BankBuilder {
+	b.bank.Loans = loans
+	return b
+}
+
+// AddLoan adds a loan to the Loans slice
+func (b *BankBuilder) AddLoan(loan any) *BankBuilder {
 	b.bank.Loans = append(b.bank.Loans, loan)
 	return b
 }
 
-// WithInvestment adds an investment to the Investments slice
-func (b *BankBuilder) WithInvestment(investment any) *BankBuilder {
+// WithInvestments sets the Investments
+func (b *BankBuilder) WithInvestments(investments []any) *BankBuilder {
+	b.bank.Investments = investments
+	return b
+}
+
+// AddInvestment adds an investment to the Investments slice
+func (b *BankBuilder) AddInvestment(investment any) *BankBuilder {
 	b.bank.Investments = append(b.bank.Investments, investment)
 	return b
 }
@@ -93,7 +115,7 @@ func (b *BankBuilder) WithValidation(validationFunc func(*models.Bank) error) *B
 }
 
 // Build builds the Bank
-func (b *BankBuilder) Build() any {
+func (b *BankBuilder) Build() interface{} {
 	return b.bank
 }
 
@@ -109,7 +131,7 @@ func (b *BankBuilder) BuildAndValidate() (*models.Bank, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(bank); err != nil {
-			return bank, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -125,12 +147,12 @@ func (b *BankBuilder) BuildAndValidate() (*models.Bank, error) {
 func (b *BankBuilder) MustBuild() *models.Bank {
 	bank, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Bank validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return bank
 }
 
-// Clone creates a deep copy of the BankBuilder
+// Clone creates a deep copy of the builder
 func (b *BankBuilder) Clone() *BankBuilder {
 	clonedBank := *b.bank
 	return &BankBuilder{

@@ -2,12 +2,13 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/test/models"
 )
 
-// AddressBuilder builds an Address model
+// AddressBuilder builds a Address model
 type AddressBuilder struct {
-	address        *models.Address
+	address *models.Address
+	// Custom validation functions
 	validationFuncs []func(*models.Address) error
 }
 
@@ -15,19 +16,23 @@ type AddressBuilder struct {
 func NewAddressBuilder() *AddressBuilder {
 	return &AddressBuilder{
 		address: &models.Address{
-			Street:      "",
-			City:        "",
-			State:       "",
-			PostalCode:  "",
-			Country:     "",
-			Coordinates: nil,
-			Type:        "",
-			IsPrimary:   false,
+			Street: "",
+			City: "",
+			State: "",
+			PostalCode: "",
+			Country: "",
+			Location: nil,
 		},
 		validationFuncs: []func(*models.Address) error{},
 	}
 }
 
+// NewAddressBuilderWithDefaults creates a new AddressBuilder with sensible defaults
+func NewAddressBuilderWithDefaults() *AddressBuilder {
+	builder := NewAddressBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithStreet sets the Street
 func (b *AddressBuilder) WithStreet(street string) *AddressBuilder {
 	b.address.Street = street
@@ -58,23 +63,13 @@ func (b *AddressBuilder) WithCountry(country string) *AddressBuilder {
 	return b
 }
 
-// WithCoordinates sets the Coordinates
-func (b *AddressBuilder) WithCoordinates(coordinates *GeoLocationBuilder) *AddressBuilder {
-	b.address.Coordinates = coordinates.BuildPtr()
+// WithLocation sets the Location
+func (b *AddressBuilder) WithLocation(location *GeoLocationBuilder) *AddressBuilder {
+	// Handle nested pointer
+	b.address.Location = location.BuildPtr()
 	return b
 }
 
-// WithType sets the Type
-func (b *AddressBuilder) WithType(addressType string) *AddressBuilder {
-	b.address.Type = addressType
-	return b
-}
-
-// WithIsPrimary sets the IsPrimary
-func (b *AddressBuilder) WithIsPrimary(isPrimary bool) *AddressBuilder {
-	b.address.IsPrimary = isPrimary
-	return b
-}
 
 // WithValidation adds a custom validation function
 func (b *AddressBuilder) WithValidation(validationFunc func(*models.Address) error) *AddressBuilder {
@@ -103,9 +98,11 @@ func (b *AddressBuilder) BuildAndValidate() (*models.Address, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := address.Validate(); err != nil {
-		return address, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(address).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return address, err
+		}
 	}
 
 	return address, nil
@@ -113,18 +110,18 @@ func (b *AddressBuilder) BuildAndValidate() (*models.Address, error) {
 
 // MustBuild builds the Address and panics if validation fails
 func (b *AddressBuilder) MustBuild() *models.Address {
-	address, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return address
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *AddressBuilder) Clone() *AddressBuilder {
 	clonedAddress := *b.address
 	return &AddressBuilder{
-		address:        &clonedAddress,
+		address: &clonedAddress,
 		validationFuncs: append([]func(*models.Address) error{}, b.validationFuncs...),
 	}
 }

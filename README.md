@@ -16,6 +16,9 @@ A powerful toolkit for implementing the Builder pattern in Go, designed to simpl
 - **Code Generation**: Automatically generate builders for any struct.
 - **Performance Optimized**: Efficient implementation with minimal overhead.
 - **Testing Support**: Streamlines test data creation for unit and integration tests.
+- **Slice and Map Handling**: Special methods for working with slices and maps.
+- **Clone Support**: Deep copy functionality for builders.
+- **Zero Dependencies**: No external runtime dependencies.
 
 ## Installation
 
@@ -32,9 +35,106 @@ go get github.com/adil-faiyaz98/go-builder-kit
 Use the builder generator to create builders for your structs:
 
 ```bash
+# Install the builder generator
 go install github.com/adil-faiyaz98/go-builder-kit/cmd/builder-gen@latest
 
-builder-gen -input models -output builders -recursive -models-package github.com/adil-faiyaz98/go-builder-kit/models
+# Generate builders for your models
+builder-gen -input path/to/models -output path/to/builders -models-package github.com/yourusername/yourproject/models
+```
+
+#### Command Line Options
+
+- `-input`: Path to the input Go file or directory containing structs to generate builders for
+- `-output`: Output directory for generated builder files
+- `-models-package`: Import path for the models package (required)
+- `-package-name`: Name of the generated package (default: "builders")
+- `-recursive`: Process directories recursively
+- `-verbose`: Enable verbose output
+
+### Using Generated Builders
+
+Once you've generated builders, you can use them to create instances of your structs with a fluent API:
+
+```go
+// Create an address builder
+addressBuilder := builders.NewAddressBuilder().
+    WithStreet("123 Main St").
+    WithCity("Anytown").
+    WithState("CA").
+    WithPostalCode("12345").
+    WithCountry("USA")
+
+// Create a person builder with a nested address
+personBuilder := builders.NewPersonBuilder().
+    WithID("123").
+    WithName("John Doe").
+    WithAge(30).
+    WithEmail("john@example.com").
+    WithAddress(addressBuilder)
+
+// Add items to slices
+personBuilder.AddSkill("Go")
+personBuilder.AddSkill("Java")
+
+// Build the person
+person := personBuilder.BuildPtr()
+```
+
+### Advanced Features
+
+#### Validation
+
+Add custom validation to your builders:
+
+```go
+personBuilder.WithValidation(func(p *models.Person) error {
+    if p.Age < 0 {
+        return fmt.Errorf("age cannot be negative")
+    }
+    return nil
+})
+
+// Build with validation
+person, err := personBuilder.BuildAndValidate()
+if err != nil {
+    // Handle validation error
+}
+```
+
+#### Cloning
+
+Create deep copies of builders:
+
+```go
+clonedBuilder := personBuilder.Clone()
+clonedBuilder.WithName("Jane Doe")
+
+// Original builder is unaffected
+person1 := personBuilder.BuildPtr()    // Name is still "John Doe"
+person2 := clonedBuilder.BuildPtr()    // Name is "Jane Doe"
+```
+
+#### Working with Nested Structures
+
+The builder pattern shines when working with complex nested structures:
+
+```go
+// Create department with employees
+departmentBuilder := builders.NewDepartmentBuilder().
+    WithName("Engineering").
+    WithDescription("Software Engineering")
+
+// Add multiple employees
+for i := 1; i <= 3; i++ {
+    employeeBuilder := builders.NewEmployeeBuilder().
+        WithID(fmt.Sprintf("E%03d", i)).
+        WithName(fmt.Sprintf("Engineer %d", i))
+
+    departmentBuilder.AddEmployee(employeeBuilder)
+}
+
+// Build the department with all its employees
+department := departmentBuilder.BuildPtr()
 ```
 
 ### Create Objects with Builders
@@ -129,6 +229,15 @@ go test ./...
 # Generate builders
 go run cmd/builder-gen/main.go -input models -output builders -recursive
 ```
+
+## Recent Improvements
+
+- Fixed import path issues for better package handling
+- Improved parameter naming for better code readability
+- Enhanced handling of nested structs at any depth
+- Added support for slice operations with proper type handling
+- Removed unnecessary dependencies
+- Fixed formatting issues in generated code
 
 ## License
 

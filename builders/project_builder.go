@@ -73,22 +73,39 @@ func (b *ProjectBuilder) WithManager(manager any) *ProjectBuilder {
 	return b
 }
 
-// WithTeamMember adds a team member to the Team slice
-func (b *ProjectBuilder) WithTeamMember(teamMember any) *ProjectBuilder {
+// WithTeam sets the Team
+func (b *ProjectBuilder) WithTeam(team []any) *ProjectBuilder {
+	b.project.Team = team
+	return b
+}
+
+// AddTeamMember adds a team member to the Team slice
+func (b *ProjectBuilder) AddTeamMember(teamMember any) *ProjectBuilder {
 	b.project.Team = append(b.project.Team, teamMember)
 	return b
 }
 
-// WithMember adds a member to the Members slice
-func (b *ProjectBuilder) WithMember(member any) *ProjectBuilder {
+// WithMembers sets the Members
+func (b *ProjectBuilder) WithMembers(members []any) *ProjectBuilder {
+	b.project.Members = members
+	return b
+}
+
+// AddMember adds a member to the Members slice
+func (b *ProjectBuilder) AddMember(member any) *ProjectBuilder {
 	b.project.Members = append(b.project.Members, member)
 	return b
 }
 
-// WithTask adds a task to the Tasks slice
-func (b *ProjectBuilder) WithTask(task *TaskBuilder) *ProjectBuilder {
-	builtValue := task.Build().(*models.Task)
-	b.project.Tasks = append(b.project.Tasks, builtValue)
+// WithTasks sets the Tasks
+func (b *ProjectBuilder) WithTasks(tasks []*models.Task) *ProjectBuilder {
+	b.project.Tasks = tasks
+	return b
+}
+
+// AddTask adds a task to the Tasks slice
+func (b *ProjectBuilder) AddTask(task *TaskBuilder) *ProjectBuilder {
+	b.project.Tasks = append(b.project.Tasks, task.BuildPtr())
 	return b
 }
 
@@ -99,7 +116,7 @@ func (b *ProjectBuilder) WithValidation(validationFunc func(*models.Project) err
 }
 
 // Build builds the Project
-func (b *ProjectBuilder) Build() any {
+func (b *ProjectBuilder) Build() interface{} {
 	return b.project
 }
 
@@ -115,7 +132,7 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(project); err != nil {
-			return project, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -131,12 +148,12 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 func (b *ProjectBuilder) MustBuild() *models.Project {
 	project, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Project validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return project
 }
 
-// Clone creates a deep copy of the ProjectBuilder
+// Clone creates a deep copy of the builder
 func (b *ProjectBuilder) Clone() *ProjectBuilder {
 	clonedProject := *b.project
 	return &ProjectBuilder{

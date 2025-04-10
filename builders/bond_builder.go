@@ -37,12 +37,6 @@ func NewBondBuilder() *BondBuilder {
 	}
 }
 
-// WithID sets the ID
-func (b *BondBuilder) WithID(id string) *BondBuilder {
-	b.bond.ID = id
-	return b
-}
-
 // WithISIN sets the ISIN
 func (b *BondBuilder) WithISIN(isin string) *BondBuilder {
 	b.bond.ISIN = isin
@@ -61,15 +55,15 @@ func (b *BondBuilder) WithIssuer(issuer string) *BondBuilder {
 	return b
 }
 
-// WithType sets the Type
-func (b *BondBuilder) WithType(bondType string) *BondBuilder {
-	b.bond.Type = bondType
+// WithID sets the ID
+func (b *BondBuilder) WithID(id string) *BondBuilder {
+	b.bond.ID = id
 	return b
 }
 
-// WithFaceValue sets the FaceValue
-func (b *BondBuilder) WithFaceValue(faceValue float64) *BondBuilder {
-	b.bond.FaceValue = faceValue
+// WithMaturityDate sets the MaturityDate
+func (b *BondBuilder) WithMaturityDate(maturityDate string) *BondBuilder {
+	b.bond.MaturityDate = maturityDate
 	return b
 }
 
@@ -79,9 +73,9 @@ func (b *BondBuilder) WithCouponRate(couponRate float64) *BondBuilder {
 	return b
 }
 
-// WithMaturityDate sets the MaturityDate
-func (b *BondBuilder) WithMaturityDate(maturityDate string) *BondBuilder {
-	b.bond.MaturityDate = maturityDate
+// WithFaceValue sets the FaceValue
+func (b *BondBuilder) WithFaceValue(faceValue float64) *BondBuilder {
+	b.bond.FaceValue = faceValue
 	return b
 }
 
@@ -121,6 +115,12 @@ func (b *BondBuilder) WithPaymentFrequency(paymentFrequency string) *BondBuilder
 	return b
 }
 
+// WithType sets the Type
+func (b *BondBuilder) WithType(bondType string) *BondBuilder {
+	b.bond.Type = bondType
+	return b
+}
+
 // WithRating sets the Rating
 func (b *BondBuilder) WithRating(rating string) *BondBuilder {
 	b.bond.Rating = rating
@@ -140,7 +140,7 @@ func (b *BondBuilder) WithValidation(validationFunc func(*models.Bond) error) *B
 }
 
 // Build builds the Bond
-func (b *BondBuilder) Build() any {
+func (b *BondBuilder) Build() interface{} {
 	return b.bond
 }
 
@@ -156,7 +156,7 @@ func (b *BondBuilder) BuildAndValidate() (*models.Bond, error) {
 	// Run custom validation functions
 	for _, validationFunc := range b.validationFuncs {
 		if err := validationFunc(bond); err != nil {
-			return bond, err
+			return nil, fmt.Errorf("custom validation failed: %w", err)
 		}
 	}
 
@@ -172,12 +172,12 @@ func (b *BondBuilder) BuildAndValidate() (*models.Bond, error) {
 func (b *BondBuilder) MustBuild() *models.Bond {
 	bond, err := b.BuildAndValidate()
 	if err != nil {
-		panic(fmt.Sprintf("Bond validation failed: %s", err.Error()))
+		panic(err)
 	}
 	return bond
 }
 
-// Clone creates a deep copy of the BondBuilder
+// Clone creates a deep copy of the builder
 func (b *BondBuilder) Clone() *BondBuilder {
 	clonedBond := *b.bond
 	return &BondBuilder{

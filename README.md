@@ -239,6 +239,20 @@ go run cmd/builder-gen/main.go -input models -output builders -recursive
 - Removed unnecessary dependencies
 - Fixed formatting issues in generated code
 
+## Using GoReleaser
+
+When using GoReleaser with this project, you may encounter a "git is in a dirty state" error. This can happen if there are untracked files or changes in your working directory. To bypass this validation, use the `--skip=validate` flag:
+
+```bash
+goreleaser release --clean --skip=validate
+```
+
+Alternatively, you can use the `--snapshot` flag, which also skips validation:
+
+```bash
+goreleaser release --snapshot --clean
+```
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.

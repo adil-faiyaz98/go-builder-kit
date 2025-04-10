@@ -2,10 +2,6 @@ version: 2
 
 project_name: go-builder-kit
 
-# Allow running in a dirty git state
-git:
-  dirty: true
-
 before:
   hooks:
     - go mod tidy

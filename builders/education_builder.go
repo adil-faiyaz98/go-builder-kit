@@ -2,13 +2,13 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
-// EducationBuilder builds an Education model
+// EducationBuilder builds a Education model
 type EducationBuilder struct {
-	education       *models.Education
+	education *models.Education
+	// Custom validation functions
 	validationFuncs []func(*models.Education) error
 }
 
@@ -16,22 +16,28 @@ type EducationBuilder struct {
 func NewEducationBuilder() *EducationBuilder {
 	return &EducationBuilder{
 		education: &models.Education{
-			Degree:      "",
+			Degree: "",
 			Institution: "",
-			Location:    nil,
-			StartDate:   "",
-			EndDate:     "",
-			GPA:         0.0,
-			Honors:      []string{},
-			Major:       "",
-			Minor:       "",
-			Courses:     []*models.Course{},
-			Activities:  []string{},
+			Location: nil,
+			StartDate: "",
+			EndDate: "",
+			GPA: 0.0,
+			Honors: []string{},
+			Major: "",
+			Minor: "",
+			Courses: []*models.Course{},
+			Activities: []string{},
 		},
 		validationFuncs: []func(*models.Education) error{},
 	}
 }
 
+// NewEducationBuilderWithDefaults creates a new EducationBuilder with sensible defaults
+func NewEducationBuilderWithDefaults() *EducationBuilder {
+	builder := NewEducationBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithDegree sets the Degree
 func (b *EducationBuilder) WithDegree(degree string) *EducationBuilder {
 	b.education.Degree = degree
@@ -46,6 +52,7 @@ func (b *EducationBuilder) WithInstitution(institution string) *EducationBuilder
 
 // WithLocation sets the Location
 func (b *EducationBuilder) WithLocation(location *AddressBuilder) *EducationBuilder {
+	// Handle nested pointer
 	b.education.Location = location.BuildPtr()
 	return b
 }
@@ -63,20 +70,14 @@ func (b *EducationBuilder) WithEndDate(endDate string) *EducationBuilder {
 }
 
 // WithGPA sets the GPA
-func (b *EducationBuilder) WithGPA(gpa float64) *EducationBuilder {
-	b.education.GPA = gpa
+func (b *EducationBuilder) WithGPA(gPA float64) *EducationBuilder {
+	b.education.GPA = gPA
 	return b
 }
 
 // WithHonors sets the Honors
 func (b *EducationBuilder) WithHonors(honors []string) *EducationBuilder {
-	b.education.Honors = honors
-	return b
-}
-
-// AddHonor adds an honor to the Honors slice
-func (b *EducationBuilder) AddHonor(honor string) *EducationBuilder {
-	b.education.Honors = append(b.education.Honors, honor)
+	b.education.Honors = append(b.education.Honors, honors...)
 	return b
 }
 
@@ -93,26 +94,37 @@ func (b *EducationBuilder) WithMinor(minor string) *EducationBuilder {
 }
 
 // WithCourses sets the Courses
-func (b *EducationBuilder) WithCourses(courses []*models.Course) *EducationBuilder {
-	b.education.Courses = courses
-	return b
-}
-
-// AddCourse adds a course to the Courses slice
-func (b *EducationBuilder) AddCourse(course *CourseBuilder) *EducationBuilder {
-	b.education.Courses = append(b.education.Courses, course.BuildPtr())
+func (b *EducationBuilder) WithCourses(courses []*CourseBuilder) *EducationBuilder {
+	// Ensure the slice is initialized
+	if b.education.Courses == nil {
+		b.education.Courses = []*models.Course{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.education.Courses = make([]*models.Course, 0, len(courses))
+	// Convert each builder to its model
+	for _, builder := range courses {
+		builtValue := builder.Build().(*models.Course)
+		b.education.Courses = append(b.education.Courses, builtValue)
+	}
 	return b
 }
 
 // WithActivities sets the Activities
 func (b *EducationBuilder) WithActivities(activities []string) *EducationBuilder {
-	b.education.Activities = activities
+	b.education.Activities = append(b.education.Activities, activities...)
 	return b
 }
 
-// AddActivity adds an activity to the Activities slice
-func (b *EducationBuilder) AddActivity(activity string) *EducationBuilder {
-	b.education.Activities = append(b.education.Activities, activity)
+// AddCours adds a single item to the Courses slice
+func (b *EducationBuilder) AddCours(cours *CourseBuilder) *EducationBuilder {
+	// Ensure the slice is initialized
+	if b.education.Courses == nil {
+		b.education.Courses = []*models.Course{}
+	}
+	// Handle nested slice element
+	builtValue := cours.Build().(*models.Course)
+	b.education.Courses = append(b.education.Courses, builtValue)
 	return b
 }
 
@@ -143,9 +155,11 @@ func (b *EducationBuilder) BuildAndValidate() (*models.Education, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := education.Validate(); err != nil {
-		return education, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(education).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return education, err
+		}
 	}
 
 	return education, nil
@@ -153,18 +167,18 @@ func (b *EducationBuilder) BuildAndValidate() (*models.Education, error) {
 
 // MustBuild builds the Education and panics if validation fails
 func (b *EducationBuilder) MustBuild() *models.Education {
-	education, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return education
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *EducationBuilder) Clone() *EducationBuilder {
 	clonedEducation := *b.education
 	return &EducationBuilder{
-		education:       &clonedEducation,
+		education: &clonedEducation,
 		validationFuncs: append([]func(*models.Education) error{}, b.validationFuncs...),
 	}
 }

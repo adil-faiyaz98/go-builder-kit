@@ -16,14 +16,14 @@ type TaskBuilder struct {
 func NewTaskBuilder() *TaskBuilder {
 	return &TaskBuilder{
 		task: &models.Task{
-			Name:        "",
+			Name: "",
 			Description: "",
-			StartDate:   "",
-			EndDate:     "",
-			Status:      "",
-			Priority:    "",
-			Assignee:    nil,
-			Subtasks:    []*models.Task{},
+			StartDate: "",
+			EndDate: "",
+			Status: "",
+			Priority: "",
+			Assignee: interface{}(0),
+			Subtasks: []*models.Task{},
 		},
 		validationFuncs: []func(*models.Task) error{},
 	}
@@ -35,7 +35,6 @@ func NewTaskBuilderWithDefaults() *TaskBuilder {
 	// Add default values here if needed
 	return builder
 }
-
 // WithName sets the Name
 func (b *TaskBuilder) WithName(name string) *TaskBuilder {
 	b.task.Name = name
@@ -79,14 +78,31 @@ func (b *TaskBuilder) WithAssignee(assignee interface{}) *TaskBuilder {
 }
 
 // WithSubtasks sets the Subtasks
-func (b *TaskBuilder) WithSubtasks(subtasks []*models.Task) *TaskBuilder {
-	b.task.Subtasks = subtasks
+func (b *TaskBuilder) WithSubtasks(subtasks []*TaskBuilder) *TaskBuilder {
+	// Ensure the slice is initialized
+	if b.task.Subtasks == nil {
+		b.task.Subtasks = []*models.Task{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.task.Subtasks = make([]*models.Task, 0, len(subtasks))
+	// Convert each builder to its model
+	for _, builder := range subtasks {
+		builtValue := builder.Build().(*models.Task)
+		b.task.Subtasks = append(b.task.Subtasks, builtValue)
+	}
 	return b
 }
 
-// AddSubtask adds a sub-task to the Subtasks slice
+// AddSubtask adds a single item to the Subtasks slice
 func (b *TaskBuilder) AddSubtask(subtask *TaskBuilder) *TaskBuilder {
-	b.task.Subtasks = append(b.task.Subtasks, subtask.BuildPtr())
+	// Ensure the slice is initialized
+	if b.task.Subtasks == nil {
+		b.task.Subtasks = []*models.Task{}
+	}
+	// Handle nested slice element
+	builtValue := subtask.Build().(*models.Task)
+	b.task.Subtasks = append(b.task.Subtasks, builtValue)
 	return b
 }
 
@@ -140,7 +156,7 @@ func (b *TaskBuilder) MustBuild() *models.Task {
 func (b *TaskBuilder) Clone() *TaskBuilder {
 	clonedTask := *b.task
 	return &TaskBuilder{
-		task:           &clonedTask,
+		task: &clonedTask,
 		validationFuncs: append([]func(*models.Task) error{}, b.validationFuncs...),
 	}
 }

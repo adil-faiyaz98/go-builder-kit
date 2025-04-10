@@ -7,7 +7,8 @@ import (
 
 // DepartmentBuilder builds a Department model
 type DepartmentBuilder struct {
-	department     *models.Department
+	department *models.Department
+	// Custom validation functions
 	validationFuncs []func(*models.Department) error
 }
 
@@ -15,17 +16,26 @@ type DepartmentBuilder struct {
 func NewDepartmentBuilder() *DepartmentBuilder {
 	return &DepartmentBuilder{
 		department: &models.Department{
-			Name:        "",
-			Code:        "",
+			Name: "",
+			Code: "",
 			Description: "",
-			Manager:     "",
-			Budget:      0.0,
-			HeadCount:   0,
+			Manager: interface{}(0),
+			Employees: []interface{}{},
+			Budget: 0.0,
+			HeadCount: 0,
+			Projects: []interface{}{},
+			Location: nil,
 		},
 		validationFuncs: []func(*models.Department) error{},
 	}
 }
 
+// NewDepartmentBuilderWithDefaults creates a new DepartmentBuilder with sensible defaults
+func NewDepartmentBuilderWithDefaults() *DepartmentBuilder {
+	builder := NewDepartmentBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithName sets the Name
 func (b *DepartmentBuilder) WithName(name string) *DepartmentBuilder {
 	b.department.Name = name
@@ -45,8 +55,14 @@ func (b *DepartmentBuilder) WithDescription(description string) *DepartmentBuild
 }
 
 // WithManager sets the Manager
-func (b *DepartmentBuilder) WithManager(manager string) *DepartmentBuilder {
+func (b *DepartmentBuilder) WithManager(manager interface{}) *DepartmentBuilder {
 	b.department.Manager = manager
+	return b
+}
+
+// WithEmployees sets the Employees
+func (b *DepartmentBuilder) WithEmployees(employees []interface{}) *DepartmentBuilder {
+	b.department.Employees = append(b.department.Employees, employees...)
 	return b
 }
 
@@ -61,6 +77,20 @@ func (b *DepartmentBuilder) WithHeadCount(headCount int) *DepartmentBuilder {
 	b.department.HeadCount = headCount
 	return b
 }
+
+// WithProjects sets the Projects
+func (b *DepartmentBuilder) WithProjects(projects []interface{}) *DepartmentBuilder {
+	b.department.Projects = append(b.department.Projects, projects...)
+	return b
+}
+
+// WithLocation sets the Location
+func (b *DepartmentBuilder) WithLocation(location *AddressBuilder) *DepartmentBuilder {
+	// Handle nested pointer
+	b.department.Location = location.BuildPtr()
+	return b
+}
+
 
 // WithValidation adds a custom validation function
 func (b *DepartmentBuilder) WithValidation(validationFunc func(*models.Department) error) *DepartmentBuilder {
@@ -89,9 +119,11 @@ func (b *DepartmentBuilder) BuildAndValidate() (*models.Department, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := department.Validate(); err != nil {
-		return department, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(department).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return department, err
+		}
 	}
 
 	return department, nil
@@ -99,18 +131,18 @@ func (b *DepartmentBuilder) BuildAndValidate() (*models.Department, error) {
 
 // MustBuild builds the Department and panics if validation fails
 func (b *DepartmentBuilder) MustBuild() *models.Department {
-	department, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return department
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *DepartmentBuilder) Clone() *DepartmentBuilder {
 	clonedDepartment := *b.department
 	return &DepartmentBuilder{
-		department:     &clonedDepartment,
+		department: &clonedDepartment,
 		validationFuncs: append([]func(*models.Department) error{}, b.validationFuncs...),
 	}
 }

@@ -2,12 +2,14 @@ package builders
 
 import (
 	"fmt"
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // PersonBuilder builds a Person model
 type PersonBuilder struct {
-	person         *models.Person
+	person *models.Person
+	// Custom validation functions
 	validationFuncs []func(*models.Person) error
 }
 
@@ -26,13 +28,13 @@ func NewPersonBuilder() *PersonBuilder {
 			MaritalStatus: "",
 			Address:       nil,
 			Education:     nil,
-			Profile:       nil,
+			Profile:       interface{}(0),
 			Bank:          nil,
 			Employment:    nil,
 			Friends:       []*models.Person{},
 			Family:        []*models.FamilyMember{},
-			Health:        nil,
-			Digital:       nil,
+			Health:        interface{}(0),
+			Digital:       interface{}(0),
 			TravelHistory: []*models.Travel{},
 			Preferences:   nil,
 			CreatedAt:     "",
@@ -40,6 +42,13 @@ func NewPersonBuilder() *PersonBuilder {
 		},
 		validationFuncs: []func(*models.Person) error{},
 	}
+}
+
+// NewPersonBuilderWithDefaults creates a new PersonBuilder with sensible defaults
+func NewPersonBuilderWithDefaults() *PersonBuilder {
+	builder := NewPersonBuilder()
+	// Add default values here if needed
+	return builder
 }
 
 // WithID sets the ID
@@ -98,12 +107,14 @@ func (b *PersonBuilder) WithMaritalStatus(maritalStatus string) *PersonBuilder {
 
 // WithAddress sets the Address
 func (b *PersonBuilder) WithAddress(address *AddressBuilder) *PersonBuilder {
+	// Handle nested pointer
 	b.person.Address = address.BuildPtr()
 	return b
 }
 
 // WithEducation sets the Education
 func (b *PersonBuilder) WithEducation(education *EducationBuilder) *PersonBuilder {
+	// Handle nested pointer
 	b.person.Education = education.BuildPtr()
 	return b
 }
@@ -115,26 +126,54 @@ func (b *PersonBuilder) WithProfile(profile interface{}) *PersonBuilder {
 }
 
 // WithBank sets the Bank
-func (b *PersonBuilder) WithBank(bank *BankBuilder) *PersonBuilder {
-	b.person.Bank = bank.BuildPtr()
+func (b *PersonBuilder) WithBank(bank interface{}) *PersonBuilder {
+	// Handle nested pointer
+	if bank, ok := bank.(*models.Bank); ok {
+		b.person.Bank = bank
+	}
 	return b
 }
 
 // WithEmployment sets the Employment
-func (b *PersonBuilder) WithEmployment(employment *EmploymentBuilder) *PersonBuilder {
-	b.person.Employment = employment.BuildPtr()
+func (b *PersonBuilder) WithEmployment(employment interface{}) *PersonBuilder {
+	// Handle nested pointer
+	if employment, ok := employment.(*models.Employment); ok {
+		b.person.Employment = employment
+	}
 	return b
 }
 
-// WithFriend adds a friend to the Friends slice
-func (b *PersonBuilder) WithFriend(friend *PersonBuilder) *PersonBuilder {
-	b.person.Friends = append(b.person.Friends, friend.BuildPtr())
+// WithFriends sets the Friends
+func (b *PersonBuilder) WithFriends(friends []*PersonBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.Friends == nil {
+		b.person.Friends = []*models.Person{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.person.Friends = make([]*models.Person, 0, len(friends))
+	// Convert each builder to its model
+	for _, builder := range friends {
+		builtValue := builder.Build().(*models.Person)
+		b.person.Friends = append(b.person.Friends, builtValue)
+	}
 	return b
 }
 
-// WithFamilyMember adds a family member to the Family slice
-func (b *PersonBuilder) WithFamilyMember(familyMember *FamilyMemberBuilder) *PersonBuilder {
-	b.person.Family = append(b.person.Family, familyMember.BuildPtr())
+// WithFamily sets the Family
+func (b *PersonBuilder) WithFamily(family []*FamilyMemberBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.Family == nil {
+		b.person.Family = []*models.FamilyMember{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.person.Family = make([]*models.FamilyMember, 0, len(family))
+	// Convert each builder to its model
+	for _, builder := range family {
+		builtValue := builder.Build().(*models.FamilyMember)
+		b.person.Family = append(b.person.Family, builtValue)
+	}
 	return b
 }
 
@@ -150,14 +189,26 @@ func (b *PersonBuilder) WithDigital(digital interface{}) *PersonBuilder {
 	return b
 }
 
-// WithTravel adds a travel to the TravelHistory slice
-func (b *PersonBuilder) WithTravel(travel *TravelBuilder) *PersonBuilder {
-	b.person.TravelHistory = append(b.person.TravelHistory, travel.BuildPtr())
+// WithTravelHistory sets the TravelHistory
+func (b *PersonBuilder) WithTravelHistory(travelHistory []*TravelBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.TravelHistory == nil {
+		b.person.TravelHistory = []*models.Travel{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.person.TravelHistory = make([]*models.Travel, 0, len(travelHistory))
+	// Convert each builder to its model
+	for _, builder := range travelHistory {
+		builtValue := builder.Build().(*models.Travel)
+		b.person.TravelHistory = append(b.person.TravelHistory, builtValue)
+	}
 	return b
 }
 
 // WithPreferences sets the Preferences
 func (b *PersonBuilder) WithPreferences(preferences *PersonalPreferencesBuilder) *PersonBuilder {
+	// Handle nested pointer
 	b.person.Preferences = preferences.BuildPtr()
 	return b
 }
@@ -171,6 +222,42 @@ func (b *PersonBuilder) WithCreatedAt(createdAt string) *PersonBuilder {
 // WithUpdatedAt sets the UpdatedAt
 func (b *PersonBuilder) WithUpdatedAt(updatedAt string) *PersonBuilder {
 	b.person.UpdatedAt = updatedAt
+	return b
+}
+
+// AddFriend adds a single item to the Friends slice
+func (b *PersonBuilder) AddFriend(friend *PersonBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.Friends == nil {
+		b.person.Friends = []*models.Person{}
+	}
+	// Handle nested slice element
+	builtValue := friend.Build().(*models.Person)
+	b.person.Friends = append(b.person.Friends, builtValue)
+	return b
+}
+
+// AddFamily adds a single item to the Family slice
+func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.Family == nil {
+		b.person.Family = []*models.FamilyMember{}
+	}
+	// Handle nested slice element
+	builtValue := family.Build().(*models.FamilyMember)
+	b.person.Family = append(b.person.Family, builtValue)
+	return b
+}
+
+// AddTravelHistory adds a single item to the TravelHistory slice
+func (b *PersonBuilder) AddTravelHistory(travelHistory *TravelBuilder) *PersonBuilder {
+	// Ensure the slice is initialized
+	if b.person.TravelHistory == nil {
+		b.person.TravelHistory = []*models.Travel{}
+	}
+	// Handle nested slice element
+	builtValue := travelHistory.Build().(*models.Travel)
+	b.person.TravelHistory = append(b.person.TravelHistory, builtValue)
 	return b
 }
 
@@ -201,9 +288,11 @@ func (b *PersonBuilder) BuildAndValidate() (*models.Person, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := person.Validate(); err != nil {
-		return person, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(person).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return person, err
+		}
 	}
 
 	return person, nil
@@ -211,18 +300,18 @@ func (b *PersonBuilder) BuildAndValidate() (*models.Person, error) {
 
 // MustBuild builds the Person and panics if validation fails
 func (b *PersonBuilder) MustBuild() *models.Person {
-	person, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return person
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *PersonBuilder) Clone() *PersonBuilder {
 	clonedPerson := *b.person
 	return &PersonBuilder{
-		person:         &clonedPerson,
+		person:          &clonedPerson,
 		validationFuncs: append([]func(*models.Person) error{}, b.validationFuncs...),
 	}
 }

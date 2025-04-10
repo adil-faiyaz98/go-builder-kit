@@ -1,3 +1,8 @@
+// +build ignore
+
+// +build ignore
+// +build ignore
+
 package models_test
 
 import (

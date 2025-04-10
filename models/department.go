@@ -10,11 +10,11 @@ type Department struct {
 	Name        string
 	Code        string
 	Description string
-	Manager     any   // Will be *Person, using any to avoid import cycle
-	Employees   []any // Will be []*Person, using any to avoid import cycle
+	Manager     interface{}   // Will be *Person, using interface{} to avoid import cycle
+	Employees   []interface{} // Will be []*Person, using interface{} to avoid import cycle
 	Budget      float64
 	HeadCount   int
-	Projects    []any // Simplified to avoid undefined type
+	Projects    []interface{} // Simplified to avoid undefined type
 	Location    *Address
 }
 

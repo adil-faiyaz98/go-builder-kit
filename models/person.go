@@ -20,13 +20,13 @@ type Person struct {
 	MaritalStatus string
 	Address       *Address
 	Education     *Education
-	Profile       any
+	Profile       interface{}
 	Bank          *Bank
 	Employment    *Employment
 	Friends       []*Person
 	Family        []*FamilyMember
-	Health        any
-	Digital       any
+	Health        interface{}
+	Digital       interface{}
 	TravelHistory []*Travel
 	Preferences   *PersonalPreferences
 	CreatedAt     string

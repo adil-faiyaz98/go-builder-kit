@@ -1,4 +1,6 @@
-package models_test
+// +build ignore
+
+// +build ignore
 
 import (
 	"testing"

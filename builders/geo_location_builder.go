@@ -7,7 +7,8 @@ import (
 
 // GeoLocationBuilder builds a GeoLocation model
 type GeoLocationBuilder struct {
-	geoLocation    *models.GeoLocation
+	geoLocation *models.GeoLocation
+	// Custom validation functions
 	validationFuncs []func(*models.GeoLocation) error
 }
 
@@ -15,14 +16,20 @@ type GeoLocationBuilder struct {
 func NewGeoLocationBuilder() *GeoLocationBuilder {
 	return &GeoLocationBuilder{
 		geoLocation: &models.GeoLocation{
-			Latitude:  0.0,
+			Latitude: 0.0,
 			Longitude: 0.0,
-			Accuracy:  0.0,
+			Accuracy: 0.0,
 		},
 		validationFuncs: []func(*models.GeoLocation) error{},
 	}
 }
 
+// NewGeoLocationBuilderWithDefaults creates a new GeoLocationBuilder with sensible defaults
+func NewGeoLocationBuilderWithDefaults() *GeoLocationBuilder {
+	builder := NewGeoLocationBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithLatitude sets the Latitude
 func (b *GeoLocationBuilder) WithLatitude(latitude float64) *GeoLocationBuilder {
 	b.geoLocation.Latitude = latitude
@@ -40,6 +47,7 @@ func (b *GeoLocationBuilder) WithAccuracy(accuracy float64) *GeoLocationBuilder 
 	b.geoLocation.Accuracy = accuracy
 	return b
 }
+
 
 // WithValidation adds a custom validation function
 func (b *GeoLocationBuilder) WithValidation(validationFunc func(*models.GeoLocation) error) *GeoLocationBuilder {
@@ -68,9 +76,11 @@ func (b *GeoLocationBuilder) BuildAndValidate() (*models.GeoLocation, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := geoLocation.Validate(); err != nil {
-		return geoLocation, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(geoLocation).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return geoLocation, err
+		}
 	}
 
 	return geoLocation, nil
@@ -78,18 +88,18 @@ func (b *GeoLocationBuilder) BuildAndValidate() (*models.GeoLocation, error) {
 
 // MustBuild builds the GeoLocation and panics if validation fails
 func (b *GeoLocationBuilder) MustBuild() *models.GeoLocation {
-	geoLocation, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return geoLocation
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *GeoLocationBuilder) Clone() *GeoLocationBuilder {
 	clonedGeoLocation := *b.geoLocation
 	return &GeoLocationBuilder{
-		geoLocation:    &clonedGeoLocation,
+		geoLocation: &clonedGeoLocation,
 		validationFuncs: append([]func(*models.GeoLocation) error{}, b.validationFuncs...),
 	}
 }

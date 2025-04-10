@@ -1,9 +1,5 @@
 package builders
 
-import (
-	"fmt"
-	"reflect"
-)
 
 // BuilderUtil provides utility functions for builders
 type BuilderUtil struct{}
@@ -16,125 +12,58 @@ func NewBuilderUtil() *BuilderUtil {
 // DefaultBuilderUtil is the default BuilderUtil instance
 var DefaultBuilderUtil = NewBuilderUtil()
 
-// IsZero checks if a value is the zero value for its type
-func (u *BuilderUtil) IsZero(v interface{}) bool {
+// IsEmpty checks if a slice or map is empty
+func (u *BuilderUtil) IsEmpty(v interface{}) bool {
 	if v == nil {
 		return true
 	}
 
-	val := reflect.ValueOf(v)
-	switch val.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-		return val.IsNil()
-	case reflect.Array:
-		zero := true
-		for i := 0; i < val.Len(); i++ {
-			zero = zero && u.IsZero(val.Index(i).Interface())
-		}
-		return zero
-	case reflect.Struct:
-		zero := true
-		for i := 0; i < val.NumField(); i++ {
-			zero = zero && u.IsZero(val.Field(i).Interface())
-		}
-		return zero
+	// Type switch for common container types
+	switch val := v.(type) {
+	case string:
+		return val == ""
+	case []string:
+		return len(val) == 0
+	case []int:
+		return len(val) == 0
+	case []interface{}:
+		return len(val) == 0
+	case map[string]string:
+		return len(val) == 0
+	case map[string]interface{}:
+		return len(val) == 0
 	}
 
-	return val.Interface() == reflect.Zero(val.Type()).Interface()
+	// For other types, we can't easily check without reflection
+	return false
 }
 
-// DeepCopy creates a deep copy of a value
-func (u *BuilderUtil) DeepCopy(v interface{}) interface{} {
-	if v == nil {
-		return nil
+// MergeStringMaps merges two string maps
+func (u *BuilderUtil) MergeStringMaps(m1, m2 map[string]string) map[string]string {
+	result := make(map[string]string)
+
+	// Copy all entries from m1
+	for k, v := range m1 {
+		result[k] = v
 	}
 
-	val := reflect.ValueOf(v)
-	switch val.Kind() {
-	case reflect.Ptr:
-		if val.IsNil() {
-			return nil
-		}
-		newVal := reflect.New(val.Elem().Type())
-		newVal.Elem().Set(reflect.ValueOf(u.DeepCopy(val.Elem().Interface())))
-		return newVal.Interface()
-	case reflect.Slice:
-		if val.IsNil() {
-			return nil
-		}
-		newSlice := reflect.MakeSlice(val.Type(), val.Len(), val.Cap())
-		for i := 0; i < val.Len(); i++ {
-			newSlice.Index(i).Set(reflect.ValueOf(u.DeepCopy(val.Index(i).Interface())))
-		}
-		return newSlice.Interface()
-	case reflect.Map:
-		if val.IsNil() {
-			return nil
-		}
-		newMap := reflect.MakeMap(val.Type())
-		for _, key := range val.MapKeys() {
-			newMap.SetMapIndex(key, reflect.ValueOf(u.DeepCopy(val.MapIndex(key).Interface())))
-		}
-		return newMap.Interface()
-	case reflect.Struct:
-		newStruct := reflect.New(val.Type()).Elem()
-		for i := 0; i < val.NumField(); i++ {
-			newStruct.Field(i).Set(reflect.ValueOf(u.DeepCopy(val.Field(i).Interface())))
-		}
-		return newStruct.Interface()
-	default:
-		return v
+	// Copy all entries from m2, overwriting any duplicates from m1
+	for k, v := range m2 {
+		result[k] = v
 	}
+
+	return result
 }
 
-// MergeSlices merges two slices of the same type
-func (u *BuilderUtil) MergeSlices(s1, s2 interface{}) interface{} {
-	v1 := reflect.ValueOf(s1)
-	v2 := reflect.ValueOf(s2)
+// MergeStringSlices merges two string slices
+func (u *BuilderUtil) MergeStringSlices(s1, s2 []string) []string {
+	result := make([]string, len(s1)+len(s2))
 
-	if v1.Kind() != reflect.Slice || v2.Kind() != reflect.Slice {
-		panic(fmt.Sprintf("both arguments must be slices, got %T and %T", s1, s2))
-	}
+	// Copy all entries from s1
+	copy(result, s1)
 
-	if v1.Type() != v2.Type() {
-		panic(fmt.Sprintf("slices must be of the same type, got %v and %v", v1.Type(), v2.Type()))
-	}
+	// Copy all entries from s2
+	copy(result[len(s1):], s2)
 
-	result := reflect.MakeSlice(v1.Type(), v1.Len()+v2.Len(), v1.Len()+v2.Len())
-
-	for i := 0; i < v1.Len(); i++ {
-		result.Index(i).Set(v1.Index(i))
-	}
-
-	for i := 0; i < v2.Len(); i++ {
-		result.Index(v1.Len() + i).Set(v2.Index(i))
-	}
-
-	return result.Interface()
-}
-
-// MergeMaps merges two maps of the same type
-func (u *BuilderUtil) MergeMaps(m1, m2 interface{}) interface{} {
-	v1 := reflect.ValueOf(m1)
-	v2 := reflect.ValueOf(m2)
-
-	if v1.Kind() != reflect.Map || v2.Kind() != reflect.Map {
-		panic(fmt.Sprintf("both arguments must be maps, got %T and %T", m1, m2))
-	}
-
-	if v1.Type() != v2.Type() {
-		panic(fmt.Sprintf("maps must be of the same type, got %v and %v", v1.Type(), v2.Type()))
-	}
-
-	result := reflect.MakeMap(v1.Type())
-
-	for _, key := range v1.MapKeys() {
-		result.SetMapIndex(key, v1.MapIndex(key))
-	}
-
-	for _, key := range v2.MapKeys() {
-		result.SetMapIndex(key, v2.MapIndex(key))
-	}
-
-	return result.Interface()
+	return result
 }

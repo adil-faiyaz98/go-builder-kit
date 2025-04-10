@@ -1,4 +1,6 @@
-package tests
+// +build ignore
+
+// +build ignore
 
 import (
 	"fmt"

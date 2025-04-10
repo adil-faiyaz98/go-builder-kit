@@ -7,7 +7,8 @@ import (
 
 // FamilyMemberBuilder builds a FamilyMember model
 type FamilyMemberBuilder struct {
-	familyMember   *models.FamilyMember
+	familyMember *models.FamilyMember
+	// Custom validation functions
 	validationFuncs []func(*models.FamilyMember) error
 }
 
@@ -15,15 +16,22 @@ type FamilyMemberBuilder struct {
 func NewFamilyMemberBuilder() *FamilyMemberBuilder {
 	return &FamilyMemberBuilder{
 		familyMember: &models.FamilyMember{
-			Person:       nil,
+			Person: nil,
 			Relationship: "",
 		},
 		validationFuncs: []func(*models.FamilyMember) error{},
 	}
 }
 
+// NewFamilyMemberBuilderWithDefaults creates a new FamilyMemberBuilder with sensible defaults
+func NewFamilyMemberBuilderWithDefaults() *FamilyMemberBuilder {
+	builder := NewFamilyMemberBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithPerson sets the Person
 func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBuilder {
+	// Handle nested pointer
 	b.familyMember.Person = person.BuildPtr()
 	return b
 }
@@ -33,6 +41,7 @@ func (b *FamilyMemberBuilder) WithRelationship(relationship string) *FamilyMembe
 	b.familyMember.Relationship = relationship
 	return b
 }
+
 
 // WithValidation adds a custom validation function
 func (b *FamilyMemberBuilder) WithValidation(validationFunc func(*models.FamilyMember) error) *FamilyMemberBuilder {
@@ -61,9 +70,11 @@ func (b *FamilyMemberBuilder) BuildAndValidate() (*models.FamilyMember, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := familyMember.Validate(); err != nil {
-		return familyMember, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(familyMember).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return familyMember, err
+		}
 	}
 
 	return familyMember, nil
@@ -71,18 +82,18 @@ func (b *FamilyMemberBuilder) BuildAndValidate() (*models.FamilyMember, error) {
 
 // MustBuild builds the FamilyMember and panics if validation fails
 func (b *FamilyMemberBuilder) MustBuild() *models.FamilyMember {
-	familyMember, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return familyMember
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *FamilyMemberBuilder) Clone() *FamilyMemberBuilder {
 	clonedFamilyMember := *b.familyMember
 	return &FamilyMemberBuilder{
-		familyMember:   &clonedFamilyMember,
+		familyMember: &clonedFamilyMember,
 		validationFuncs: append([]func(*models.FamilyMember) error{}, b.validationFuncs...),
 	}
 }

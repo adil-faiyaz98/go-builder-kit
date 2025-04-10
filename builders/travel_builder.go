@@ -7,7 +7,8 @@ import (
 
 // TravelBuilder builds a Travel model
 type TravelBuilder struct {
-	travel         *models.Travel
+	travel *models.Travel
+	// Custom validation functions
 	validationFuncs []func(*models.Travel) error
 }
 
@@ -15,23 +16,29 @@ type TravelBuilder struct {
 func NewTravelBuilder() *TravelBuilder {
 	return &TravelBuilder{
 		travel: &models.Travel{
-			Destination:    models.Address{},
-			StartDate:      "",
-			EndDate:        "",
-			Purpose:        "",
-			Accommodation:  "",
+			Destination: models.Address{},
+			StartDate: "",
+			EndDate: "",
+			Purpose: "",
+			Accommodation: "",
 			Transportation: "",
-			Activities:     []string{},
-			Expenses:       0.0,
+			Activities: []string{},
+			Expenses: 0.0,
 		},
 		validationFuncs: []func(*models.Travel) error{},
 	}
 }
 
+// NewTravelBuilderWithDefaults creates a new TravelBuilder with sensible defaults
+func NewTravelBuilderWithDefaults() *TravelBuilder {
+	builder := NewTravelBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithDestination sets the Destination
 func (b *TravelBuilder) WithDestination(destination *AddressBuilder) *TravelBuilder {
-	address := destination.Build().(models.Address)
-	b.travel.Destination = address
+	builtValue := destination.Build().(*models.Address)
+	b.travel.Destination = *builtValue
 	return b
 }
 
@@ -67,13 +74,7 @@ func (b *TravelBuilder) WithTransportation(transportation string) *TravelBuilder
 
 // WithActivities sets the Activities
 func (b *TravelBuilder) WithActivities(activities []string) *TravelBuilder {
-	b.travel.Activities = activities
-	return b
-}
-
-// AddActivity adds an activity to the Activities slice
-func (b *TravelBuilder) AddActivity(activity string) *TravelBuilder {
-	b.travel.Activities = append(b.travel.Activities, activity)
+	b.travel.Activities = append(b.travel.Activities, activities...)
 	return b
 }
 
@@ -82,6 +83,7 @@ func (b *TravelBuilder) WithExpenses(expenses float64) *TravelBuilder {
 	b.travel.Expenses = expenses
 	return b
 }
+
 
 // WithValidation adds a custom validation function
 func (b *TravelBuilder) WithValidation(validationFunc func(*models.Travel) error) *TravelBuilder {
@@ -96,8 +98,7 @@ func (b *TravelBuilder) Build() interface{} {
 
 // BuildPtr builds the Travel and returns a pointer
 func (b *TravelBuilder) BuildPtr() *models.Travel {
-	travel := *b.travel
-	return &travel
+	return b.travel
 }
 
 // BuildAndValidate builds the Travel and validates it
@@ -111,9 +112,11 @@ func (b *TravelBuilder) BuildAndValidate() (*models.Travel, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := travel.Validate(); err != nil {
-		return travel, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(travel).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return travel, err
+		}
 	}
 
 	return travel, nil
@@ -121,18 +124,18 @@ func (b *TravelBuilder) BuildAndValidate() (*models.Travel, error) {
 
 // MustBuild builds the Travel and panics if validation fails
 func (b *TravelBuilder) MustBuild() *models.Travel {
-	travel, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return travel
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *TravelBuilder) Clone() *TravelBuilder {
 	clonedTravel := *b.travel
 	return &TravelBuilder{
-		travel:         &clonedTravel,
+		travel: &clonedTravel,
 		validationFuncs: append([]func(*models.Travel) error{}, b.validationFuncs...),
 	}
 }

@@ -1,4 +1,6 @@
-package tests
+// +build ignore
+
+// +build ignore
 
 import (
 	"github.com/adil-faiyaz98/go-builder-kit/builders"

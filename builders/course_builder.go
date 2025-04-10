@@ -7,7 +7,8 @@ import (
 
 // CourseBuilder builds a Course model
 type CourseBuilder struct {
-	course         *models.Course
+	course *models.Course
+	// Custom validation functions
 	validationFuncs []func(*models.Course) error
 }
 
@@ -15,19 +16,25 @@ type CourseBuilder struct {
 func NewCourseBuilder() *CourseBuilder {
 	return &CourseBuilder{
 		course: &models.Course{
-			Code:        "",
-			Name:        "",
+			Code: "",
+			Name: "",
 			Description: "",
-			Credits:     0.0,
-			Grade:       "",
-			Semester:    "",
-			Year:        0,
-			Instructor:  "",
+			Credits: 0.0,
+			Grade: "",
+			Semester: "",
+			Year: 0,
+			Instructor: "",
 		},
 		validationFuncs: []func(*models.Course) error{},
 	}
 }
 
+// NewCourseBuilderWithDefaults creates a new CourseBuilder with sensible defaults
+func NewCourseBuilderWithDefaults() *CourseBuilder {
+	builder := NewCourseBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithCode sets the Code
 func (b *CourseBuilder) WithCode(code string) *CourseBuilder {
 	b.course.Code = code
@@ -76,6 +83,7 @@ func (b *CourseBuilder) WithInstructor(instructor string) *CourseBuilder {
 	return b
 }
 
+
 // WithValidation adds a custom validation function
 func (b *CourseBuilder) WithValidation(validationFunc func(*models.Course) error) *CourseBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -103,9 +111,11 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := course.Validate(); err != nil {
-		return course, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(course).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return course, err
+		}
 	}
 
 	return course, nil
@@ -113,18 +123,18 @@ func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
 
 // MustBuild builds the Course and panics if validation fails
 func (b *CourseBuilder) MustBuild() *models.Course {
-	course, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return course
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *CourseBuilder) Clone() *CourseBuilder {
 	clonedCourse := *b.course
 	return &CourseBuilder{
-		course:         &clonedCourse,
+		course: &clonedCourse,
 		validationFuncs: append([]func(*models.Course) error{}, b.validationFuncs...),
 	}
 }

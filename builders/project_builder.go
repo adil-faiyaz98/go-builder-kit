@@ -2,13 +2,13 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
 // ProjectBuilder builds a Project model
 type ProjectBuilder struct {
-	project         *models.Project
+	project *models.Project
+	// Custom validation functions
 	validationFuncs []func(*models.Project) error
 }
 
@@ -16,21 +16,27 @@ type ProjectBuilder struct {
 func NewProjectBuilder() *ProjectBuilder {
 	return &ProjectBuilder{
 		project: &models.Project{
-			Name:        "",
+			Name: "",
 			Description: "",
-			StartDate:   "",
-			EndDate:     "",
-			Status:      "",
-			Budget:      0.0,
-			Manager:     nil,
-			Team:        []any{},
-			Members:     []any{},
-			Tasks:       []*models.Task{},
+			StartDate: "",
+			EndDate: "",
+			Status: "",
+			Budget: 0.0,
+			Manager: interface{}(0),
+			Team: []interface{}{},
+			Members: []interface{}{},
+			Tasks: []*models.Task{},
 		},
 		validationFuncs: []func(*models.Project) error{},
 	}
 }
 
+// NewProjectBuilderWithDefaults creates a new ProjectBuilder with sensible defaults
+func NewProjectBuilderWithDefaults() *ProjectBuilder {
+	builder := NewProjectBuilder()
+	// Add default values here if needed
+	return builder
+}
 // WithName sets the Name
 func (b *ProjectBuilder) WithName(name string) *ProjectBuilder {
 	b.project.Name = name
@@ -68,44 +74,49 @@ func (b *ProjectBuilder) WithBudget(budget float64) *ProjectBuilder {
 }
 
 // WithManager sets the Manager
-func (b *ProjectBuilder) WithManager(manager any) *ProjectBuilder {
+func (b *ProjectBuilder) WithManager(manager interface{}) *ProjectBuilder {
 	b.project.Manager = manager
 	return b
 }
 
 // WithTeam sets the Team
-func (b *ProjectBuilder) WithTeam(team []any) *ProjectBuilder {
-	b.project.Team = team
-	return b
-}
-
-// AddTeamMember adds a team member to the Team slice
-func (b *ProjectBuilder) AddTeamMember(teamMember any) *ProjectBuilder {
-	b.project.Team = append(b.project.Team, teamMember)
+func (b *ProjectBuilder) WithTeam(team []interface{}) *ProjectBuilder {
+	b.project.Team = append(b.project.Team, team...)
 	return b
 }
 
 // WithMembers sets the Members
-func (b *ProjectBuilder) WithMembers(members []any) *ProjectBuilder {
-	b.project.Members = members
-	return b
-}
-
-// AddMember adds a member to the Members slice
-func (b *ProjectBuilder) AddMember(member any) *ProjectBuilder {
-	b.project.Members = append(b.project.Members, member)
+func (b *ProjectBuilder) WithMembers(members []interface{}) *ProjectBuilder {
+	b.project.Members = append(b.project.Members, members...)
 	return b
 }
 
 // WithTasks sets the Tasks
-func (b *ProjectBuilder) WithTasks(tasks []*models.Task) *ProjectBuilder {
-	b.project.Tasks = tasks
+func (b *ProjectBuilder) WithTasks(tasks []*TaskBuilder) *ProjectBuilder {
+	// Ensure the slice is initialized
+	if b.project.Tasks == nil {
+		b.project.Tasks = []*models.Task{}
+	}
+	// Handle nested slice elements
+	// Initialize the slice
+	b.project.Tasks = make([]*models.Task, 0, len(tasks))
+	// Convert each builder to its model
+	for _, builder := range tasks {
+		builtValue := builder.Build().(*models.Task)
+		b.project.Tasks = append(b.project.Tasks, builtValue)
+	}
 	return b
 }
 
-// AddTask adds a task to the Tasks slice
+// AddTask adds a single item to the Tasks slice
 func (b *ProjectBuilder) AddTask(task *TaskBuilder) *ProjectBuilder {
-	b.project.Tasks = append(b.project.Tasks, task.BuildPtr())
+	// Ensure the slice is initialized
+	if b.project.Tasks == nil {
+		b.project.Tasks = []*models.Task{}
+	}
+	// Handle nested slice element
+	builtValue := task.Build().(*models.Task)
+	b.project.Tasks = append(b.project.Tasks, builtValue)
 	return b
 }
 
@@ -136,9 +147,11 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 		}
 	}
 
-	// Run model's Validate method
-	if err := project.Validate(); err != nil {
-		return project, err
+	// Run model's Validate method if it exists
+	if v, ok := interface{}(project).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return project, err
+		}
 	}
 
 	return project, nil
@@ -146,18 +159,18 @@ func (b *ProjectBuilder) BuildAndValidate() (*models.Project, error) {
 
 // MustBuild builds the Project and panics if validation fails
 func (b *ProjectBuilder) MustBuild() *models.Project {
-	project, err := b.BuildAndValidate()
+	model, err := b.BuildAndValidate()
 	if err != nil {
 		panic(err)
 	}
-	return project
+	return model
 }
 
 // Clone creates a deep copy of the builder
 func (b *ProjectBuilder) Clone() *ProjectBuilder {
 	clonedProject := *b.project
 	return &ProjectBuilder{
-		project:         &clonedProject,
+		project: &clonedProject,
 		validationFuncs: append([]func(*models.Project) error{}, b.validationFuncs...),
 	}
 }

@@ -14,9 +14,9 @@ type Project struct {
 	EndDate     string
 	Status      string
 	Budget      float64
-	Manager     any
-	Team        []any
-	Members     []any
+	Manager     interface{}
+	Team        []interface{}
+	Members     []interface{}
 	Tasks       []*Task
 }
 
@@ -92,7 +92,7 @@ type Task struct {
 	EndDate     string
 	Status      string
 	Priority    string
-	Assignee    any
+	Assignee    interface{}
 	Subtasks    []*Task
 }
 

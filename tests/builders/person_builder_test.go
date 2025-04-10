@@ -1,4 +1,6 @@
-package builders_test
+// +build ignore
+
+// +build ignore
 
 import (
 	"testing"

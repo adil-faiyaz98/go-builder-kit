@@ -249,6 +249,10 @@ goreleaser release --snapshot --clean
 
 This will generate an unversioned snapshot release, skipping all validations without publishing any artifacts.
 
+### GitHub Actions Workflow
+
+This project includes a GitHub Actions workflow (`.github/workflows/release.yml`) that automatically runs GoReleaser with the `--snapshot --clean` flags when a new tag is pushed. This ensures that releases can be generated even if there are untracked files in the repository.
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.

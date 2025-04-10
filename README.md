@@ -241,17 +241,13 @@ go run cmd/builder-gen/main.go -input models -output builders -recursive
 
 ## Using GoReleaser
 
-When using GoReleaser with this project, you may encounter a "git is in a dirty state" error. This can happen if there are untracked files or changes in your working directory. To bypass this validation, use the `--skip=validate` flag:
-
-```bash
-goreleaser release --clean --skip=validate
-```
-
-Alternatively, you can use the `--snapshot` flag, which also skips validation:
+When using GoReleaser with this project, you may encounter a "git is in a dirty state" error. This can happen if there are untracked files or changes in your working directory. To bypass this validation, use the `--snapshot` flag:
 
 ```bash
 goreleaser release --snapshot --clean
 ```
+
+This will generate an unversioned snapshot release, skipping all validations without publishing any artifacts.
 
 ## License
 

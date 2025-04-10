@@ -43,7 +43,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 4. Install development tools:
    ```bash
    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-   go install golang.org/x/tools/cmd/goimports@latest
+   go install golang.org/x/tools/cmd/goimports@v.11.0
    ```
 
 ### Running Tests

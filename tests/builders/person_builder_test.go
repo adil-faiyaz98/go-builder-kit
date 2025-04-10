@@ -58,21 +58,12 @@ func TestPersonBuilder(t *testing.T) {
 
 	// Create a Task builder
 	taskBuilder := builders.NewTaskBuilder().
-		WithID("TASK-001").
-		WithTitle("Implement feature X").
+		WithName("Implement feature X").
 		WithDescription("Implement the new feature X").
 		WithStatus("In Progress").
 		WithPriority("High").
-		WithDueDate("2023-12-31").
-		WithAssignedTo("Jane Smith").
-		WithCreatedBy("John Doe").
-		WithCreatedAt("2023-01-01").
-		WithUpdatedAt("2023-01-15").
-		AddTag("feature").
-		AddTag("backend").
-		WithEstimatedHours(8.0).
-		WithActualHours(6.5).
-		WithProgress(75.0)
+		WithStartDate("2023-01-01").
+		WithEndDate("2023-12-31")
 
 	// Create a Project builder (not used in this test but would be used in a real application)
 	_ = builders.NewProjectBuilder().

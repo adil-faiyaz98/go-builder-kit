@@ -9,6 +9,8 @@ This document provides comprehensive API documentation for the Go Builder Kit li
 3. [Model Builders](#model-builders)
 4. [Validation](#validation)
 5. [Builder Generator](#builder-generator)
+6. [When to Use Builders](#when-to-use-builders)
+7. [Testing with Builders](#testing-with-builders)
 
 ## Builder Interface
 
@@ -323,3 +325,85 @@ for _, s := range structs {
     }
 }
 ```
+
+## When to Use Builders
+
+Builders are particularly useful in the following scenarios:
+
+1. **Complex Structs**: When working with deeply nested structs or structs with many optional fields, builders simplify object creation by providing a fluent API.
+2. **Immutability**: Builders allow you to construct immutable objects by encapsulating the construction logic.
+3. **Readability**: Builders improve code readability by clearly expressing the intent of object creation.
+4. **Reusability**: Builders can be reused across different parts of the application, reducing boilerplate code.
+
+### When Not to Use Builders
+
+Builders may not be necessary for simple structs with only a few fields or when the struct's construction logic is straightforward. In such cases, direct struct initialization is often more concise and efficient.
+
+### Nested Structs
+
+The Go Builder Kit excels at handling deeply nested structs. By generating builders for nested structs, you can construct complex objects with ease. For example:
+
+```go
+person := builders.NewPersonBuilder().
+    WithName("John Doe").
+    WithAddress(builders.NewAddressBuilder().
+        WithStreet("123 Main St").
+        WithCity("Springfield").
+        Build().(*models.Address)).
+    Build().(*models.Person)
+```
+
+## Testing with Builders
+
+Builders are invaluable for testing, as they allow you to create test data with minimal effort and high clarity.
+
+### Example: Unit Test with Builders
+
+```go
+func TestPersonBuilder(t *testing.T) {
+    person := builders.NewPersonBuilder().
+        WithID("123").
+        WithName("John Doe").
+        WithAge(30).
+        WithEmail("john.doe@example.com").
+        Build().(*models.Person)
+
+    if person.Name != "John Doe" {
+        t.Errorf("expected name to be 'John Doe', got '%s'", person.Name)
+    }
+}
+```
+
+### Example: Nested Struct Test
+
+```go
+func TestNestedStructBuilder(t *testing.T) {
+    person := builders.NewPersonBuilder().
+        WithName("Jane Doe").
+        WithAddress(builders.NewAddressBuilder().
+            WithStreet("456 Elm St").
+            WithCity("Metropolis").
+            Build().(*models.Address)).
+        Build().(*models.Person)
+
+    if person.Address.City != "Metropolis" {
+        t.Errorf("expected city to be 'Metropolis', got '%s'", person.Address.City)
+    }
+}
+```
+
+### Example: Validation Test
+
+```go
+func TestValidationWithBuilder(t *testing.T) {
+    _, err := builders.NewPersonBuilder().
+        WithName("").
+        BuildWithValidation()
+
+    if err == nil {
+        t.Error("expected validation error for empty name, got nil")
+    }
+}
+```
+
+By leveraging the Go Builder Kit, you can streamline the creation of test data, reduce boilerplate, and ensure consistency across your tests.

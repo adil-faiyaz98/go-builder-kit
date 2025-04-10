@@ -4,24 +4,267 @@ This document provides comprehensive API documentation for the Go Builder Kit li
 
 ## Table of Contents
 
-1. [Builder Interface](#builder-interface)
-2. [Builder Registry](#builder-registry)
-3. [Model Builders](#model-builders)
-4. [Validation](#validation)
-5. [Builder Generator](#builder-generator)
-6. [When to Use Builders](#when-to-use-builders)
-7. [Testing with Builders](#testing-with-builders)
+1. [Installation](#installation)
+2. [Builder Generator](#builder-generator)
+3. [Generated Builder Methods](#generated-builder-methods)
+4. [Working with Nested Structures](#working-with-nested-structures)
+5. [Validation](#validation)
+6. [Cloning](#cloning)
+7. [Builder Registry](#builder-registry)
+8. [Testing with Builders](#testing-with-builders)
+9. [Best Practices](#best-practices)
 
-## Builder Interface
+## Installation
 
-The `Builder` interface is the core of the Go Builder Kit library. It defines the basic functionality that all builders must implement.
+### Installing the Library
+
+```bash
+go get github.com/adil-faiyaz98/go-builder-kit
+```
+
+### Installing the Builder Generator
+
+```bash
+go install github.com/adil-faiyaz98/go-builder-kit/cmd/builder-gen@latest
+```
+
+## Builder Generator
+
+The builder generator is a command-line tool that automatically generates builder implementations for your Go structs.
+
+### Basic Usage
+
+```bash
+builder-gen -input path/to/models -output path/to/builders -models-package github.com/yourusername/yourproject/models
+```
+
+### Command Line Options
+
+| Option | Description | Required | Default |
+|--------|-------------|----------|--------|
+| `-input` | Path to the input Go file or directory containing structs | Yes | - |
+| `-output` | Output directory for generated builder files | Yes | - |
+| `-models-package` | Import path for the models package | Yes | - |
+| `-package-name` | Name of the generated package | No | "builders" |
+| `-recursive` | Process directories recursively | No | false |
+| `-verbose` | Enable verbose output | No | false |
+
+### Example
+
+Given a model like this:
 
 ```go
-// Builder is the interface that all builders must implement
-type Builder interface {
-    // Build builds the object and returns it
-    Build() interface{}
+package models
+
+type Person struct {
+    ID        string
+    Name      string
+    Age       int
+    Email     string
+    Address   *Address
+    Friends   []*Person
+    Skills    []string
 }
+
+type Address struct {
+    Street     string
+    City       string
+    State      string
+    PostalCode string
+    Country    string
+}
+```
+
+Generate builders with:
+
+```bash
+builder-gen -input models -output builders -models-package github.com/yourusername/yourproject/models
+```
+
+## Generated Builder Methods
+
+For each struct, the generator creates a builder class with the following methods:
+
+### Constructor Methods
+
+```go
+// Creates a new builder with default values
+NewPersonBuilder() *PersonBuilder
+
+// Creates a new builder with sensible defaults (if implemented)
+NewPersonBuilderWithDefaults() *PersonBuilder
+```
+
+### Setter Methods
+
+For each field in the struct, a setter method is generated:
+
+```go
+// For simple fields
+WithName(name string) *PersonBuilder
+WithAge(age int) *PersonBuilder
+
+// For pointer fields
+WithAddress(address *AddressBuilder) *PersonBuilder
+
+// For slice fields
+WithFriends(friends []*PersonBuilder) *PersonBuilder
+WithSkills(skills []string) *PersonBuilder
+
+// For slice fields, an additional method to add a single item
+AddFriend(friend *PersonBuilder) *PersonBuilder
+AddSkill(skill string) *PersonBuilder
+```
+
+### Build Methods
+
+```go
+// Returns the built struct
+Build() interface{}
+
+// Returns a pointer to the built struct
+BuildPtr() *models.Person
+
+// Builds and validates the struct
+BuildAndValidate() (*models.Person, error)
+
+// Builds the struct and panics if validation fails
+MustBuild() *models.Person
+```
+
+### Other Methods
+
+```go
+// Adds a custom validation function
+WithValidation(validationFunc func(*models.Person) error) *PersonBuilder
+
+// Creates a deep copy of the builder
+Clone() *PersonBuilder
+```
+
+## Working with Nested Structures
+
+One of the key strengths of the builder pattern is handling complex nested structures. Go Builder Kit makes this easy with its fluent API.
+
+### Setting Nested Structs
+
+```go
+// Create an address builder
+addressBuilder := builders.NewAddressBuilder().
+    WithStreet("123 Main St").
+    WithCity("Anytown").
+    WithState("CA").
+    WithPostalCode("12345").
+    WithCountry("USA")
+
+// Set the address in the person builder
+personBuilder := builders.NewPersonBuilder().
+    WithName("John Doe").
+    WithAddress(addressBuilder)
+```
+
+### Working with Slices of Nested Structs
+
+```go
+// Create a department with employees
+departmentBuilder := builders.NewDepartmentBuilder().
+    WithName("Engineering")
+
+// Add multiple employees
+employee1 := builders.NewEmployeeBuilder().
+    WithName("Alice").
+    WithTitle("Senior Engineer")
+
+employee2 := builders.NewEmployeeBuilder().
+    WithName("Bob").
+    WithTitle("Junior Engineer")
+
+// Method 1: Add employees one at a time
+departmentBuilder.AddEmployee(employee1)
+departmentBuilder.AddEmployee(employee2)
+
+// Method 2: Set all employees at once
+departmentBuilder.WithEmployees([]*builders.EmployeeBuilder{employee1, employee2})
+```
+
+### Handling Circular References
+
+The builder pattern can handle circular references elegantly:
+
+```go
+// Create employee and department with circular references
+employeeBuilder := builders.NewEmployeeBuilder().
+    WithName("John Doe").
+    WithTitle("Manager")
+
+departmentBuilder := builders.NewDepartmentBuilder().
+    WithName("Engineering")
+
+// Set circular references
+employeeBuilder.WithDepartment(departmentBuilder)
+departmentBuilder.WithManager(employeeBuilder)
+```
+
+## Validation
+
+Go Builder Kit provides built-in support for validation.
+
+### Custom Validation Functions
+
+You can add custom validation functions to your builders:
+
+```go
+personBuilder.WithValidation(func(p *models.Person) error {
+    if p.Age < 0 {
+        return fmt.Errorf("age cannot be negative")
+    }
+    if p.Name == "" {
+        return fmt.Errorf("name cannot be empty")
+    }
+    return nil
+})
+```
+
+### Building with Validation
+
+Use the `BuildAndValidate` method to build and validate in one step:
+
+```go
+person, err := personBuilder.BuildAndValidate()
+if err != nil {
+    // Handle validation error
+    log.Fatalf("Validation failed: %v", err)
+}
+```
+
+### Panic on Validation Failure
+
+If you prefer to panic on validation failure (e.g., in tests), use `MustBuild`:
+
+```go
+// Will panic if validation fails
+person := personBuilder.MustBuild()
+```
+
+## Cloning
+
+Go Builder Kit supports deep copying of builders, which is useful for creating variations of objects.
+
+```go
+// Create a base person
+basePersonBuilder := builders.NewPersonBuilder().
+    WithName("John Doe").
+    WithAge(30).
+    WithEmail("john@example.com")
+
+// Clone and modify for a different person
+janeDoeBuilder := basePersonBuilder.Clone().
+    WithName("Jane Doe").
+    WithEmail("jane@example.com")
+
+// Original builder is unaffected
+johnDoe := basePersonBuilder.BuildPtr()  // Name is still "John Doe"
+janeDoe := janeDoeBuilder.BuildPtr()     // Name is "Jane Doe"
 ```
 
 ## Builder Registry
@@ -29,381 +272,101 @@ type Builder interface {
 The builder registry allows you to register and retrieve builders by name.
 
 ```go
-// Register registers a builder function
-func Register(name string, fn BuilderFunc)
-
-// Get returns a builder function by name
-func Get(name string) (BuilderFunc, bool)
-
-// GetAll returns all registered builder functions
-func GetAll() map[string]BuilderFunc
-
-// BuilderFunc is a function that creates a new builder
-type BuilderFunc func() Builder
-```
-
-### Example
-
-```go
 // Register a builder
-Register("Person", func() Builder { return NewPersonBuilder() })
-
-// Get a builder by name
-builderFunc, ok := Get("Person")
-if ok {
-    builder := builderFunc()
-    person := builder.Build()
-}
-```
-
-## Model Builders
-
-The library provides builders for all models in the system. Each builder follows the same pattern:
-
-### PersonBuilder
-
-```go
-// PersonBuilder builds a Person model
-type PersonBuilder struct {
-    person *models.Person
-    validationFuncs []func(*models.Person) error
-}
-
-// NewPersonBuilder creates a new PersonBuilder
-func NewPersonBuilder() *PersonBuilder
-
-// WithID sets the ID
-func (b *PersonBuilder) WithID(id string) *PersonBuilder
-
-// WithName sets the Name
-func (b *PersonBuilder) WithName(name string) *PersonBuilder
-
-// WithAge sets the Age
-func (b *PersonBuilder) WithAge(age int) *PersonBuilder
-
-// WithEmail sets the Email
-func (b *PersonBuilder) WithEmail(email string) *PersonBuilder
-
-// WithPhone sets the Phone
-func (b *PersonBuilder) WithPhone(phone string) *PersonBuilder
-
-// WithBirthdate sets the Birthdate
-func (b *PersonBuilder) WithBirthdate(birthdate string) *PersonBuilder
-
-// WithGender sets the Gender
-func (b *PersonBuilder) WithGender(gender string) *PersonBuilder
-
-// WithNationality sets the Nationality
-func (b *PersonBuilder) WithNationality(nationality string) *PersonBuilder
-
-// WithMaritalStatus sets the MaritalStatus
-func (b *PersonBuilder) WithMaritalStatus(maritalStatus string) *PersonBuilder
-
-// WithAddress sets the Address
-func (b *PersonBuilder) WithAddress(addressBuilder *AddressBuilder) *PersonBuilder
-
-// WithEducation sets the Education
-func (b *PersonBuilder) WithEducation(educationBuilder *EducationBuilder) *PersonBuilder
-
-// WithEmployment sets the Employment
-func (b *PersonBuilder) WithEmployment(employmentBuilder *EmploymentBuilder) *PersonBuilder
-
-// WithHealthProfile sets the HealthProfile
-func (b *PersonBuilder) WithHealthProfile(healthProfileBuilder *HealthProfileBuilder) *PersonBuilder
-
-// WithFinancialProfile sets the FinancialProfile
-func (b *PersonBuilder) WithFinancialProfile(financialProfileBuilder *FinancialProfileBuilder) *PersonBuilder
-
-// WithDigitalProfile sets the DigitalProfile
-func (b *PersonBuilder) WithDigitalProfile(digitalProfileBuilder *DigitalProfileBuilder) *PersonBuilder
-
-// WithMetadata adds a metadata entry
-func (b *PersonBuilder) WithMetadata(key, value string) *PersonBuilder
-
-// WithValidation adds a custom validation function
-func (b *PersonBuilder) WithValidation(validationFunc func(*models.Person) error) *PersonBuilder
-
-// Build builds the Person
-func (b *PersonBuilder) Build() interface{}
-
-// BuildWithValidation builds the Person and validates it
-func (b *PersonBuilder) BuildWithValidation() (*models.Person, error)
-
-// Clone creates a deep copy of the builder
-func (b *PersonBuilder) Clone() *PersonBuilder
-
-// FromModel creates a builder from an existing model
-func PersonBuilderFromModel(model models.Person) *PersonBuilder
-```
-
-### AddressBuilder
-
-```go
-// AddressBuilder builds an Address model
-type AddressBuilder struct {
-    address *models.Address
-    validationFuncs []func(*models.Address) error
-}
-
-// NewAddressBuilder creates a new AddressBuilder
-func NewAddressBuilder() *AddressBuilder
-
-// WithStreet sets the Street
-func (b *AddressBuilder) WithStreet(street string) *AddressBuilder
-
-// WithCity sets the City
-func (b *AddressBuilder) WithCity(city string) *AddressBuilder
-
-// WithState sets the State
-func (b *AddressBuilder) WithState(state string) *AddressBuilder
-
-// WithPostalCode sets the PostalCode
-func (b *AddressBuilder) WithPostalCode(postalCode string) *AddressBuilder
-
-// WithCountry sets the Country
-func (b *AddressBuilder) WithCountry(country string) *AddressBuilder
-
-// WithCoordinates sets the Coordinates
-func (b *AddressBuilder) WithCoordinates(coordinatesBuilder *GeoLocationBuilder) *AddressBuilder
-
-// WithType sets the Type
-func (b *AddressBuilder) WithType(addressType string) *AddressBuilder
-
-// WithIsPrimary sets the IsPrimary flag
-func (b *AddressBuilder) WithIsPrimary(isPrimary bool) *AddressBuilder
-
-// WithValidation adds a custom validation function
-func (b *AddressBuilder) WithValidation(validationFunc func(*models.Address) error) *AddressBuilder
-
-// Build builds the Address
-func (b *AddressBuilder) Build() interface{}
-
-// BuildWithValidation builds the Address and validates it
-func (b *AddressBuilder) BuildWithValidation() (*models.Address, error)
-
-// Clone creates a deep copy of the builder
-func (b *AddressBuilder) Clone() *AddressBuilder
-
-// FromModel creates a builder from an existing model
-func AddressBuilderFromModel(model models.Address) *AddressBuilder
-```
-
-## Validation
-
-The library provides validation support for all models. Validation can be performed in two ways:
-
-1. Using the `BuildWithValidation` method on builders
-2. Using the `Validate` method on models
-
-### Builder Validation
-
-```go
-// Create a person with validation
-person, err := builders.NewPersonBuilder().
-    WithID("123").
-    WithName("John Doe").
-    WithAge(30).
-    WithEmail("john.doe@example.com").
-    BuildWithValidation()
-
-if err != nil {
-    fmt.Printf("Validation error: %v\n", err)
-    return
-}
-```
-
-### Model Validation
-
-```go
-// Create a person without validation
-person := builders.NewPersonBuilder().
-    WithID("123").
-    WithName("John Doe").
-    WithAge(30).
-    WithEmail("john.doe@example.com").
-    Build().(models.Person)
-
-// Validate the person
-if err := person.Validate(); err != nil {
-    fmt.Printf("Validation error: %v\n", err)
-    return
-}
-```
-
-### Custom Validation
-
-You can add custom validation rules to builders:
-
-```go
-// Create a person with custom validation
-person, err := builders.NewPersonBuilder().
-    WithID("123").
-    WithName("John Doe").
-    WithAge(30).
-    WithEmail("john.doe@example.com").
-    // Add custom validation rule
-    WithValidation(func(p *models.Person) error {
-        if !strings.HasPrefix(p.Email, "john.") {
-            return fmt.Errorf("email must start with 'john.'")
-        }
-        return nil
-    }).
-    BuildWithValidation()
-
-if err != nil {
-    fmt.Printf("Validation error: %v\n", err)
-    return
-}
-```
-
-## Builder Generator
-
-The library includes a code generator that can automatically generate builders for any struct.
-
-### Command-Line Tool
-
-```bash
-# Generate builders for a single file
-builder-gen -input models/person.go -output builders -models-package github.com/adil-faiyaz98/go-builder-kit/models
-
-# Generate builders for all files in a directory
-builder-gen -input models -output builders -recursive -models-package github.com/adil-faiyaz98/go-builder-kit/models
-```
-
-### Generator API
-
-```go
-// Generator generates builder code for structs
-type Generator struct {
-    Options Options
-}
-
-// Options contains configuration options for the generator
-type Options struct {
-    PackageName   string
-    ModelsPackage string
-    Verbose       bool
-}
-
-// NewGenerator creates a new Generator
-func NewGenerator(opts Options) *Generator
-
-// ParseFile parses a Go file and extracts struct information
-func (g *Generator) ParseFile(filename string) ([]StructInfo, error)
-
-// GenerateBuilder generates builder code for a struct
-func (g *Generator) GenerateBuilder(structInfo StructInfo) (string, error)
-```
-
-### Example
-
-```go
-// Create a generator
-gen := generator.NewGenerator(generator.Options{
-    PackageName:   "builders",
-    ModelsPackage: "github.com/adil-faiyaz98/go-builder-kit/models",
-    Verbose:       true,
+builders.RegisterBuilder("person", func() builders.Builder {
+    return builders.NewPersonBuilder()
 })
 
-// Parse a file
-structs, err := gen.ParseFile("models/person.go")
-if err != nil {
-    log.Fatalf("Error parsing file: %v", err)
+// Get a builder by name
+builder, ok := builders.GetBuilder("person")
+if ok {
+    personBuilder := builder.(*builders.PersonBuilder)
+    // Use the builder
 }
-
-// Generate builder for each struct
-for _, s := range structs {
-    code, err := gen.GenerateBuilder(s)
-    if err != nil {
-        log.Fatalf("Error generating builder: %v", err)
-    }
-
-    // Write builder to file
-    outputFile := fmt.Sprintf("builders/%s_builder.go", generator.ToSnakeCase(s.Name))
-    if err := os.WriteFile(outputFile, []byte(code), 0644); err != nil {
-        log.Fatalf("Error writing file: %v", err)
-    }
-}
-```
-
-## When to Use Builders
-
-Builders are particularly useful in the following scenarios:
-
-1. **Complex Structs**: When working with deeply nested structs or structs with many optional fields, builders simplify object creation by providing a fluent API.
-2. **Immutability**: Builders allow you to construct immutable objects by encapsulating the construction logic.
-3. **Readability**: Builders improve code readability by clearly expressing the intent of object creation.
-4. **Reusability**: Builders can be reused across different parts of the application, reducing boilerplate code.
-
-### When Not to Use Builders
-
-Builders may not be necessary for simple structs with only a few fields or when the struct's construction logic is straightforward. In such cases, direct struct initialization is often more concise and efficient.
-
-### Nested Structs
-
-The Go Builder Kit excels at handling deeply nested structs. By generating builders for nested structs, you can construct complex objects with ease. For example:
-
-```go
-person := builders.NewPersonBuilder().
-    WithName("John Doe").
-    WithAddress(builders.NewAddressBuilder().
-        WithStreet("123 Main St").
-        WithCity("Springfield").
-        Build().(*models.Address)).
-    Build().(*models.Person)
 ```
 
 ## Testing with Builders
 
-Builders are invaluable for testing, as they allow you to create test data with minimal effort and high clarity.
+Builders are particularly useful in testing scenarios, making it easy to create test fixtures.
 
-### Example: Unit Test with Builders
+### Creating Test Fixtures
 
 ```go
-func TestPersonBuilder(t *testing.T) {
+func TestPersonService(t *testing.T) {
+    // Create a test person with all required fields
     person := builders.NewPersonBuilder().
         WithID("123").
-        WithName("John Doe").
+        WithName("Test Person").
         WithAge(30).
-        WithEmail("john.doe@example.com").
-        Build().(*models.Person)
-
-    if person.Name != "John Doe" {
-        t.Errorf("expected name to be 'John Doe', got '%s'", person.Name)
-    }
+        BuildPtr()
+    
+    // Use the person in your test
+    result := service.ProcessPerson(person)
+    
+    // Assert on the result
+    assert.Equal(t, expected, result)
 }
 ```
 
-### Example: Nested Struct Test
+### Table-Driven Tests
 
 ```go
-func TestNestedStructBuilder(t *testing.T) {
-    person := builders.NewPersonBuilder().
-        WithName("Jane Doe").
-        WithAddress(builders.NewAddressBuilder().
-            WithStreet("456 Elm St").
-            WithCity("Metropolis").
-            Build().(*models.Address)).
-        Build().(*models.Person)
-
-    if person.Address.City != "Metropolis" {
-        t.Errorf("expected city to be 'Metropolis', got '%s'", person.Address.City)
+func TestPersonValidation(t *testing.T) {
+    tests := []struct {
+        name    string
+        builder func() *builders.PersonBuilder
+        wantErr bool
+    }{
+        {
+            name: "valid person",
+            builder: func() *builders.PersonBuilder {
+                return builders.NewPersonBuilder().
+                    WithName("John Doe").
+                    WithAge(30)
+            },
+            wantErr: false,
+        },
+        {
+            name: "invalid age",
+            builder: func() *builders.PersonBuilder {
+                return builders.NewPersonBuilder().
+                    WithName("John Doe").
+                    WithAge(-1)
+            },
+            wantErr: true,
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            _, err := tt.builder().BuildAndValidate()
+            if (err != nil) != tt.wantErr {
+                t.Errorf("BuildAndValidate() error = %v, wantErr %v", err, tt.wantErr)
+            }
+        })
     }
 }
 ```
 
-### Example: Validation Test
+## Best Practices
 
-```go
-func TestValidationWithBuilder(t *testing.T) {
-    _, err := builders.NewPersonBuilder().
-        WithName("").
-        BuildWithValidation()
+### When to Use Builders
 
-    if err == nil {
-        t.Error("expected validation error for empty name, got nil")
-    }
-}
-```
+- **Complex Objects**: Use builders for structs with many fields or nested structures
+- **Optional Fields**: Builders are great when many fields are optional
+- **Validation**: When you need to validate objects during construction
+- **Testing**: For creating test fixtures with different variations
 
-By leveraging the Go Builder Kit, you can streamline the creation of test data, reduce boilerplate, and ensure consistency across your tests.
+### Tips for Using Builders
+
+1. **Keep Builders in a Separate Package**: This helps maintain separation of concerns
+2. **Use Sensible Defaults**: Implement `NewXBuilderWithDefaults()` methods for common use cases
+3. **Add Validation**: Use the validation support to ensure objects are valid
+4. **Document Builder Methods**: Add comments to explain what each method does
+5. **Use Clone for Variations**: When creating similar objects, clone a base builder
+
+### Performance Considerations
+
+- Builders add a small overhead compared to direct struct initialization
+- For performance-critical code paths, consider direct initialization
+- Use the `BuildPtr()` method to avoid unnecessary copying

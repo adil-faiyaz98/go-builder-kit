@@ -52,21 +52,20 @@ release:
     name: go-builder-kit
   prerelease: auto
   draft: false
-  name_template: "{{ .ProjectName }} v{{ .Version }}"
+  name_template: "{{ .ProjectName }} v1.8"  # Updated tag version
   header: |
-    # {{ .ProjectName }} v{{ .Version }}
-
+    # {{ .ProjectName }} v1.8  # Updated tag version
 
   footer: |
     ## Installation
 
     ```bash
-    go get github.com/adil-faiyaz98/go-builder-kit@{{ .Tag }}
+    go get github.com/adil-faiyaz98/go-builder-kit@v1.8  # Updated tag version
     ```
 
     ## Documentation
 
-    Full documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit@{{ .Tag }})
+    Full documentation is available at [pkg.go.dev](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit@v1.8)  # Updated tag version
 
 
 

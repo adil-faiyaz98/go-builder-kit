@@ -44,7 +44,7 @@ func (e ValidationErrors) HasErrors() bool {
 }
 
 // ValidateRequired validates that a field is not empty
-func ValidateRequired(value interface{}, field string, errors *ValidationErrors) {
+func ValidateRequired(value any, field string, errors *ValidationErrors) {
 	if value == nil {
 		errors.Add(field, "cannot be empty")
 		return
@@ -82,7 +82,7 @@ func ValidateMaxLength(value string, field string, maxLength int, errors *Valida
 }
 
 // ValidateMinValue validates that a number is at least a minimum value
-func ValidateMinValue(value interface{}, field string, minValue float64, errors *ValidationErrors) {
+func ValidateMinValue(value any, field string, minValue float64, errors *ValidationErrors) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -101,7 +101,7 @@ func ValidateMinValue(value interface{}, field string, minValue float64, errors 
 }
 
 // ValidateMaxValue validates that a number is at most a maximum value
-func ValidateMaxValue(value interface{}, field string, maxValue float64, errors *ValidationErrors) {
+func ValidateMaxValue(value any, field string, maxValue float64, errors *ValidationErrors) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -125,7 +125,7 @@ func ValidateEmail(value string, field string, errors *ValidationErrors) {
 	if value == "" {
 		return
 	}
-	
+
 	if !strings.Contains(value, "@") || !strings.Contains(value, ".") {
 		errors.Add(field, "must be a valid email address")
 	}
@@ -137,7 +137,7 @@ func ValidateURL(value string, field string, errors *ValidationErrors) {
 	if value == "" {
 		return
 	}
-	
+
 	if !strings.HasPrefix(value, "http://") && !strings.HasPrefix(value, "https://") {
 		errors.Add(field, "must be a valid URL")
 	}

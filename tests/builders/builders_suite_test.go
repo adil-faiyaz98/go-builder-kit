@@ -1,6 +1,4 @@
-// +build ignore
-
-// +build ignore
+package builders_test
 
 import (
 	"testing"
@@ -9,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestBuilders(t *testing.T) {
+func TestBuildersPackage(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Builder Suite")
+	RunSpecs(t, "Builders Package Suite")
 }

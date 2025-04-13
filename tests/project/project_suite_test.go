@@ -1,6 +1,4 @@
-// +build ignore
-
-// +build ignore
+package project_test
 
 import (
 	"testing"
@@ -9,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestModels(t *testing.T) {
+func TestProject(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Models Suite")
+	RunSpecs(t, "Project Suite")
 }

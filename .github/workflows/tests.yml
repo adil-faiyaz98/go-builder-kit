@@ -27,7 +27,18 @@ jobs:
       run: go mod download
 
     - name: Run tests
-      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: |
+        go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+        # Ensure specific test directories are always included
+        echo "Running tests for specific directories..."
+        go test -v ./tests/address/...
+        go test -v ./tests/builders/...
+        go test -v ./tests/department/...
+        go test -v ./tests/education/...
+        go test -v ./tests/performance/...
+        go test -v ./tests/person/...
+        go test -v ./tests/project/...
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -90,3 +101,40 @@ jobs:
 
     - name: Build performance example
       run: go build -v ./examples/performance
+
+  specific-tests:
+    name: Run Specific Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Run address tests
+      run: go test -v ./tests/address/...
+
+    - name: Run builders tests
+      run: go test -v ./tests/builders/...
+
+    - name: Run department tests
+      run: go test -v ./tests/department/...
+
+    - name: Run education tests
+      run: go test -v ./tests/education/...
+
+    - name: Run performance tests
+      run: go test -v ./tests/performance/...
+
+    - name: Run person tests
+      run: go test -v ./tests/person/...
+
+    - name: Run project tests
+      run: go test -v ./tests/project/...

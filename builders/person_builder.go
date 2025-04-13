@@ -2,7 +2,6 @@ package builders
 
 import (
 	"fmt"
-
 	"github.com/adil-faiyaz98/go-builder-kit/models"
 )
 
@@ -17,28 +16,28 @@ type PersonBuilder struct {
 func NewPersonBuilder() *PersonBuilder {
 	return &PersonBuilder{
 		person: &models.Person{
-			ID:            "",
-			Name:          "",
-			Age:           0,
-			Email:         "",
-			Phone:         "",
-			Birthdate:     "",
-			Gender:        "",
-			Nationality:   "",
+			ID: "",
+			Name: "",
+			Age: 0,
+			Email: "",
+			Phone: "",
+			Birthdate: "",
+			Gender: "",
+			Nationality: "",
 			MaritalStatus: "",
-			Address:       nil,
-			Education:     nil,
-			Profile:       interface{}(0),
-			Bank:          nil,
-			Employment:    nil,
-			Friends:       []*models.Person{},
-			Family:        []*models.FamilyMember{},
-			Health:        interface{}(0),
-			Digital:       interface{}(0),
+			Address: nil,
+			Education: nil,
+			Profile: interface{}(0),
+			Bank: nil,
+			Employment: nil,
+			Friends: []*models.Person{},
+			Family: []*models.FamilyMember{},
+			Health: interface{}(0),
+			Digital: interface{}(0),
 			TravelHistory: []*models.Travel{},
-			Preferences:   nil,
-			CreatedAt:     "",
-			UpdatedAt:     "",
+			Preferences: nil,
+			CreatedAt: "",
+			UpdatedAt: "",
 		},
 		validationFuncs: []func(*models.Person) error{},
 	}
@@ -50,7 +49,6 @@ func NewPersonBuilderWithDefaults() *PersonBuilder {
 	// Add default values here if needed
 	return builder
 }
-
 // WithID sets the ID
 func (b *PersonBuilder) WithID(id string) *PersonBuilder {
 	b.person.ID = id
@@ -126,20 +124,16 @@ func (b *PersonBuilder) WithProfile(profile interface{}) *PersonBuilder {
 }
 
 // WithBank sets the Bank
-func (b *PersonBuilder) WithBank(bank interface{}) *PersonBuilder {
+func (b *PersonBuilder) WithBank(bank *BankBuilder) *PersonBuilder {
 	// Handle nested pointer
-	if bank, ok := bank.(*models.Bank); ok {
-		b.person.Bank = bank
-	}
+	b.person.Bank = bank.BuildPtr()
 	return b
 }
 
 // WithEmployment sets the Employment
-func (b *PersonBuilder) WithEmployment(employment interface{}) *PersonBuilder {
+func (b *PersonBuilder) WithEmployment(employment *EmploymentBuilder) *PersonBuilder {
 	// Handle nested pointer
-	if employment, ok := employment.(*models.Employment); ok {
-		b.person.Employment = employment
-	}
+	b.person.Employment = employment.BuildPtr()
 	return b
 }
 
@@ -236,7 +230,6 @@ func (b *PersonBuilder) AddFriend(friend *PersonBuilder) *PersonBuilder {
 	b.person.Friends = append(b.person.Friends, builtValue)
 	return b
 }
-
 // AddFamily adds a single item to the Family slice
 func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	// Ensure the slice is initialized
@@ -248,7 +241,6 @@ func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	b.person.Family = append(b.person.Family, builtValue)
 	return b
 }
-
 // AddTravelHistory adds a single item to the TravelHistory slice
 func (b *PersonBuilder) AddTravelHistory(travelHistory *TravelBuilder) *PersonBuilder {
 	// Ensure the slice is initialized
@@ -311,7 +303,7 @@ func (b *PersonBuilder) MustBuild() *models.Person {
 func (b *PersonBuilder) Clone() *PersonBuilder {
 	clonedPerson := *b.person
 	return &PersonBuilder{
-		person:          &clonedPerson,
+		person: &clonedPerson,
 		validationFuncs: append([]func(*models.Person) error{}, b.validationFuncs...),
 	}
 }

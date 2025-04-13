@@ -48,10 +48,107 @@ builder-gen -input path/to/models -output path/to/builders -models-package githu
 - `-output`: Output directory for generated builder files
 - `-models-package`: Import path for the models package (required)
 - `-package-name`: Name of the generated package (default: "builders")
-- `-recursive`: Process directories recursively
 - `-verbose`: Enable verbose output
+- `-help`: Show help
 
-### Using Generated Builders
+### Using Builders
+
+Once you've generated builders for your models, you can use them to create instances of your structs:
+
+```go
+// Create a person with basic fields
+person := builders.NewPersonBuilder().
+    WithID("123").
+    WithName("John Doe").
+    WithEmail("john.doe@example.com").
+    WithAge(30).
+    BuildPtr()
+
+// Create a person with nested structures
+person := builders.NewPersonBuilder().
+    WithID("123").
+    WithName("John Doe").
+    WithEmail("john.doe@example.com").
+    WithAddress(
+        builders.NewAddressBuilder().
+            WithStreet("123 Main St").
+            WithCity("San Francisco").
+            WithState("CA").
+            WithPostalCode("94105").
+            WithCountry("USA"),
+    ).
+    BuildPtr()
+```
+
+### Validation
+
+You can add custom validation to your builders:
+
+```go
+// Add custom validation
+personBuilder := builders.NewPersonBuilder().
+    WithID("123").
+    WithName("John Doe").
+    WithEmail("john.doe@example.com").
+    WithAge(30).
+    WithValidation(func(p *models.Person) error {
+        if p.Age < 0 {
+            return fmt.Errorf("age cannot be negative")
+        }
+        if p.Name == "" {
+            return fmt.Errorf("name cannot be empty")
+        }
+        return nil
+    })
+
+// Build and validate
+person, err := personBuilder.BuildAndValidate()
+if err != nil {
+    // Handle validation error
+    fmt.Println("Validation failed:", err)
+    return
+}
+
+// Use the person
+fmt.Println("Person created:", person.Name)
+```
+
+### Builder Registry
+
+You can register builders in a registry for easy access:
+
+```go
+// Register builders
+registry := builders.NewBuilderRegistry()
+registry.Register("person", func() interface{} {
+    return builders.NewPersonBuilder()
+})
+registry.Register("address", func() interface{} {
+    return builders.NewAddressBuilder()
+})
+
+// Get a builder by name
+builderFunc, ok := registry.Get("person")
+if !ok {
+    // Handle builder not found
+    return
+}
+
+// Create a person using the builder
+builder := builderFunc()
+personBuilder, ok := builder.(*builders.PersonBuilder)
+if !ok {
+    // Handle type assertion error
+    return
+}
+
+person := personBuilder.
+    WithID("123").
+    WithName("John Doe").
+    WithEmail("john.doe@example.com").
+    BuildPtr()
+```
+
 
 Once you've generated builders, you can use them to create instances of your structs with a fluent API:
 

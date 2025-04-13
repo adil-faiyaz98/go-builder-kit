@@ -54,6 +54,11 @@ type StructInfo struct {
 	Fields []StructField
 }
 
+// GenerateBuilders generates builders for all structs in a Go file
+func (g *Generator) GenerateBuilders(inputFile, outputDir string) error {
+	return g.ProcessFile(inputFile, outputDir)
+}
+
 // ProcessFile processes a single Go file and generates builders for all structs
 func (g *Generator) ProcessFile(inputFile, outputDir string) error {
 	if g.Options.Verbose {
@@ -242,6 +247,11 @@ func (g *Generator) extractFieldType(expr ast.Expr) (string, bool, bool, bool, b
 		// Qualified type (e.g., time.Time)
 		if ident, ok := t.X.(*ast.Ident); ok {
 			builderName := ""
+			// Special handling for time.Time
+			if ident.Name == "time" && t.Sel.Name == "Time" {
+				// Mark time.Time as a built-in type to avoid treating it as a nested struct
+				return t.Sel.Name, false, false, false, false, true, "", "", "", ident.Name, ""
+			}
 			// Only consider it a builder if it's from our models package
 			if ident.Name == "models" || ident.Name == g.Options.ModelsPackage || strings.HasSuffix(ident.Name, "/models") {
 				builderName = t.Sel.Name + "Builder"
@@ -289,6 +299,10 @@ func (g *Generator) generateBuilderCode(structInfo StructInfo) (string, error) {
 	for _, field := range structInfo.Fields {
 		if field.ImportNeeded != "" && field.ImportNeeded != "models" {
 			imports[field.ImportNeeded] = true
+		}
+		// Add time import if we have a Time field
+		if field.Type == "Time" || strings.Contains(field.Type, "time.Time") {
+			imports["time"] = true
 		}
 	}
 

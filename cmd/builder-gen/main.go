@@ -10,34 +10,20 @@ import (
 )
 
 func main() {
-	// Define command-line flags
-	inputFile := flag.String("input", "", "Input Go file or directory containing structs to generate builders for")
-	outputDir := flag.String("output", "", "Output directory for generated builder files")
-	packageName := flag.String("package", "builders", "Package name for generated builder files")
-	modelsPackage := flag.String("models-package", "", "Package path for the models (e.g., github.com/user/repo/models)")
-	recursive := flag.Bool("recursive", false, "Recursively process all Go files in the input directory")
+	// Parse command line flags
+	inputPath := flag.String("input", "", "Path to the input Go file or directory containing structs to generate builders for")
+	outputPath := flag.String("output", "", "Output directory for generated builder files")
+	modelsPackage := flag.String("models-package", "", "Import path for the models package")
+	packageName := flag.String("package-name", "builders", "Name of the generated package")
 	verbose := flag.Bool("verbose", false, "Enable verbose output")
+	help := flag.Bool("help", false, "Show help")
 
-	// Parse command-line flags
 	flag.Parse()
 
-	// Validate input
-	if *inputFile == "" {
-		fmt.Println("Error: input file or directory is required")
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	if *outputDir == "" {
-		fmt.Println("Error: output directory is required")
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	// Create output directory if it doesn't exist
-	if err := os.MkdirAll(*outputDir, 0755); err != nil {
-		fmt.Printf("Error creating output directory: %v\n", err)
-		os.Exit(1)
+	// Show help if requested or if required flags are missing
+	if *help || *inputPath == "" || *outputPath == "" || *modelsPackage == "" {
+		printUsage()
+		os.Exit(0)
 	}
 
 	// Create generator options
@@ -47,89 +33,74 @@ func main() {
 		Verbose:       *verbose,
 	}
 
-	// Process input
-	fileInfo, err := os.Stat(*inputFile)
-	if err != nil {
-		fmt.Printf("Error accessing input: %v\n", err)
+	// Create generator
+	gen := generator.NewGenerator(opts)
+
+	// Check if input path exists
+	if _, err := os.Stat(*inputPath); os.IsNotExist(err) {
+		fmt.Printf("Error: Input path %s does not exist\n", *inputPath)
 		os.Exit(1)
 	}
 
-	if fileInfo.IsDir() {
-		// Process directory
-		if *recursive {
-			err = processDirectory(*inputFile, *outputDir, opts)
-		} else {
-			err = processFiles([]string{*inputFile}, *outputDir, opts)
+	// Create output directory if it doesn't exist
+	if _, err := os.Stat(*outputPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(*outputPath, 0755); err != nil {
+			fmt.Printf("Error creating output directory: %v\n", err)
+			os.Exit(1)
 		}
-	} else {
-		// Process single file
-		err = processFiles([]string{*inputFile}, *outputDir, opts)
 	}
 
-	if err != nil {
-		fmt.Printf("Error generating builders: %v\n", err)
+	// Process input path
+	if err := processPath(*inputPath, *outputPath, gen); err != nil {
+		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Builder generation completed successfully!")
 }
 
-func processDirectory(inputDir, outputDir string, opts generator.Options) error {
-	var files []string
-
-	err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && filepath.Ext(path) == ".go" {
-			files = append(files, path)
-		}
-		return nil
-	})
-
+// processPath processes the input path and generates builders
+func processPath(inputPath, outputPath string, gen *generator.Generator) error {
+	// Check if input path is a directory
+	fileInfo, err := os.Stat(inputPath)
 	if err != nil {
-		return fmt.Errorf("error walking directory: %w", err)
+		return fmt.Errorf("failed to stat input path: %w", err)
 	}
 
-	return processFiles(files, outputDir, opts)
-}
-
-func processFiles(files []string, outputDir string, opts generator.Options) error {
-	gen := generator.NewGenerator(opts)
-
-	// Write utility file first
-	utilFile := filepath.Join(outputDir, "builder_util.go")
-	utilCode := fmt.Sprintf("package %s\n\n%s", opts.PackageName, generator.UtilTemplate)
-	if err := os.WriteFile(utilFile, []byte(utilCode), 0644); err != nil {
-		return fmt.Errorf("error writing utility file %s: %w", utilFile, err)
-	}
-
-	if opts.Verbose {
-		fmt.Printf("Generated utility file: %s\n", utilFile)
-	}
-
-	// Write builder registry file
-	registryFile := filepath.Join(outputDir, "builder_registry.go")
-	registryCode := fmt.Sprintf("package %s\n\n%s", opts.PackageName, generator.RegistryTemplate)
-	if err := os.WriteFile(registryFile, []byte(registryCode), 0644); err != nil {
-		return fmt.Errorf("error writing registry file %s: %w", registryFile, err)
-	}
-
-	if opts.Verbose {
-		fmt.Printf("Generated registry file: %s\n", registryFile)
-	}
-
-	for _, file := range files {
-		if opts.Verbose {
-			fmt.Printf("Processing file: %s\n", file)
+	if fileInfo.IsDir() {
+		// Process all Go files in the directory
+		files, err := os.ReadDir(inputPath)
+		if err != nil {
+			return fmt.Errorf("failed to read directory: %w", err)
 		}
 
-		// Process the file
-		err := gen.ProcessFile(file, outputDir)
-		if err != nil {
-			return fmt.Errorf("error processing file %s: %w", file, err)
+		for _, file := range files {
+			if filepath.Ext(file.Name()) == ".go" && !file.IsDir() {
+				filePath := filepath.Join(inputPath, file.Name())
+				if err := gen.GenerateBuilders(filePath, outputPath); err != nil {
+					return fmt.Errorf("failed to generate builders for %s: %w", filePath, err)
+				}
+			}
+		}
+	} else {
+		// Process single file
+		if filepath.Ext(inputPath) != ".go" {
+			return fmt.Errorf("input file must be a Go file")
+		}
+
+		if err := gen.GenerateBuilders(inputPath, outputPath); err != nil {
+			return fmt.Errorf("failed to generate builders: %w", err)
 		}
 	}
 
 	return nil
+}
+
+// printUsage prints the usage information
+func printUsage() {
+	fmt.Println("Usage: builder-gen [options]")
+	fmt.Println("\nOptions:")
+	flag.PrintDefaults()
+	fmt.Println("\nExample:")
+	fmt.Println("  builder-gen -input path/to/models -output path/to/builders -models-package github.com/yourusername/yourproject/models")
 }

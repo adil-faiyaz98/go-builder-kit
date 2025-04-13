@@ -18,7 +18,7 @@ func New{{ .Struct.Name }}Builder() *{{ .Struct.Name }}Builder {
 	return &{{ .Struct.Name }}Builder{
 		{{ ToLowerFirst .Struct.Name }}: &{{ .ModelsPackage | base }}.{{ .Struct.Name }}{
 			{{- range .Struct.Fields }}
-			{{ .Name }}: {{ if .IsSlice }}{{ if .IsNested }}[]*{{ $.ModelsPackage | base }}.{{ .ElementType }}{}{{ else }}{{ .Type }}{}{{ end }}{{ else if .IsMap }}map[{{ .KeyType }}]{{ .ValType }}{}{{ else if .IsPointer }}{{ if .IsNested }}nil{{ else }}nil{{ end }}{{ else }}{{ if eq .Type "string" }}""{{ else if eq .Type "int" }}0{{ else if eq .Type "float64" }}0.0{{ else if eq .Type "bool" }}false{{ else if .IsBuiltin }}{{ .Type }}(0){{ else }}{{ $.ModelsPackage | base }}.{{ .Type }}{}{{ end }}{{ end }},
+			{{ .Name }}: {{ if .IsSlice }}{{ if .IsNested }}[]*{{ $.ModelsPackage | base }}.{{ .ElementType }}{}{{ else }}{{ .Type }}{}{{ end }}{{ else if .IsMap }}map[{{ .KeyType }}]{{ .ValType }}{}{{ else if .IsPointer }}{{ if .IsNested }}nil{{ else }}nil{{ end }}{{ else }}{{ if eq .Type "string" }}""{{ else if eq .Type "int" }}0{{ else if eq .Type "float64" }}0.0{{ else if eq .Type "bool" }}false{{ else if eq .Type "Time" }}time.Time{}{{ else if .IsBuiltin }}{{ .Type }}(0){{ else }}{{ $.ModelsPackage | base }}.{{ .Type }}{}{{ end }}{{ end }},
 			{{- end }}
 		},
 		validationFuncs: []func(*{{ .ModelsPackage | base }}.{{ .Struct.Name }}) error{},
@@ -34,7 +34,7 @@ func New{{ .Struct.Name }}BuilderWithDefaults() *{{ .Struct.Name }}Builder {
 
 {{- range .Struct.Fields }}
 // With{{ .Name }} sets the {{ .Name }}
-func (b *{{ $.Struct.Name }}Builder) With{{ .Name }}({{ if eq (ToLowerFirst .Name) "type" }}value {{ .Type }}{{ else }}{{ if .IsMap }}key {{ .KeyType }}, val {{ .ValType }}{{ else }}{{ ToParamName .Name }} {{ if .IsSlice }}{{ if .IsNested }}[]*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ else if .IsPointer }}{{ if .IsNested }}*{{ .BuilderName }}{{ else }}*{{ .Type }}{{ end }}{{ else if .IsNested }}*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ end }}{{ end }}) *{{ $.Struct.Name }}Builder {
+func (b *{{ $.Struct.Name }}Builder) With{{ .Name }}({{ if eq (ToLowerFirst .Name) "type" }}value {{ .Type }}{{ else }}{{ if .IsMap }}key {{ .KeyType }}, val {{ .ValType }}{{ else }}{{ ToParamName .Name }} {{ if .IsSlice }}{{ if .IsNested }}[]*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ else if .IsPointer }}{{ if .IsNested }}*{{ .BuilderName }}{{ else }}*{{ .Type }}{{ end }}{{ else if eq .Type "Time" }}time.Time{{ else if .IsNested }}*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ end }}{{ end }}) *{{ $.Struct.Name }}Builder {
 	{{- if and .IsSlice .IsNested }}
 	// Ensure the slice is initialized
 	if b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} == nil {

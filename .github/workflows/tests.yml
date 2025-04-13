@@ -1,0 +1,140 @@
+name: Go Builder Kit Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.18', '1.19', '1.20', '1.21']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: |
+        go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+        # Ensure specific test directories are always included
+        echo "Running tests for specific directories..."
+        go test -v ./tests/address/...
+        go test -v ./tests/builders/...
+        go test -v ./tests/department/...
+        go test -v ./tests/education/...
+        go test -v ./tests/performance/...
+        go test -v ./tests/person/...
+        go test -v ./tests/project/...
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.txt
+        fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Install golangci-lint
+      run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+
+    - name: Run golangci-lint
+      run: golangci-lint run ./...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.18', '1.19', '1.20', '1.21']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Build
+      run: go build -v ./...
+
+  examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build generics example
+      run: go build -v ./examples/generics
+
+    - name: Build performance example
+      run: go build -v ./examples/performance
+
+  specific-tests:
+    name: Run Specific Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Run address tests
+      run: go test -v ./tests/address/...
+
+    - name: Run builders tests
+      run: go test -v ./tests/builders/...
+
+    - name: Run department tests
+      run: go test -v ./tests/department/...
+
+    - name: Run education tests
+      run: go test -v ./tests/education/...
+
+    - name: Run performance tests
+      run: go test -v ./tests/performance/...
+
+    - name: Run person tests
+      run: go test -v ./tests/person/...
+
+    - name: Run project tests
+      run: go test -v ./tests/project/...

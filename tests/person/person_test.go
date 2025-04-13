@@ -7,10 +7,17 @@ import (
 )
 
 var _ = Describe("Person Builder", func() {
-	Describe("Basic Person Creation", func() {
+	var personBuilder *builders.PersonBuilder
+
+	BeforeEach(func() {
+		// Initialize a new builder before each test
+		personBuilder = builders.NewPersonBuilder()
+	})
+
+	Context("Basic Person Creation", func() {
 		It("should create a person with basic fields", func() {
-			// Create a person with basic fields
-			personBuilder := builders.NewPersonBuilder().
+			// Configure the builder
+			personBuilder.
 				WithName("John Doe").
 				WithEmail("john.doe@example.com").
 				WithAge(30).
@@ -27,10 +34,12 @@ var _ = Describe("Person Builder", func() {
 		})
 	})
 
-	Describe("Person with Address", func() {
-		It("should create a person with an address", func() {
-			// Create an address
-			addressBuilder := builders.NewAddressBuilder().
+	Context("Person with Address", func() {
+		var addressBuilder *builders.AddressBuilder
+
+		BeforeEach(func() {
+			// Initialize an address builder before each test
+			addressBuilder = builders.NewAddressBuilder().
 				WithStreet("123 Main St").
 				WithCity("San Francisco").
 				WithState("CA").
@@ -38,11 +47,15 @@ var _ = Describe("Person Builder", func() {
 				WithCountry("USA").
 				WithType("Home")
 
-			// Create a person with an address
-			personBuilder := builders.NewPersonBuilder().
+			// Configure the person builder with basic info
+			personBuilder.
 				WithName("John Doe").
-				WithEmail("john.doe@example.com").
-				WithAddress(addressBuilder)
+				WithEmail("john.doe@example.com")
+		})
+
+		It("should create a person with an address", func() {
+			// Add the address to the person
+			personBuilder.WithAddress(addressBuilder)
 
 			// Build the person
 			person := personBuilder.BuildPtr()

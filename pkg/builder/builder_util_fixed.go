@@ -3,6 +3,7 @@ package builder
 import (
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // ValidationError represents a validation error

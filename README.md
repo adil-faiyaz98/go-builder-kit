@@ -14,11 +14,13 @@ A powerful toolkit for implementing the Builder pattern in Go, designed to simpl
 - **Nested Structures**: Handles deeply nested structs with ease.
 - **Validation**: Built-in and custom validation support for models.
 - **Code Generation**: Automatically generate builders for any struct.
-- **Performance Optimized**: Efficient implementation with minimal overhead.
+- **Performance Optimized**: Efficient implementation with caching and minimal overhead.
 - **Testing Support**: Streamlines test data creation for unit and integration tests.
 - **Slice and Map Handling**: Special methods for working with slices and maps.
 - **Clone Support**: Deep copy functionality for builders.
 - **Zero Dependencies**: No external runtime dependencies.
+- **Generics Support**: Type-safe builders using Go 1.18+ generics.
+- **Thread Safety**: Concurrent-safe operations with proper synchronization.
 
 ## Installation
 

@@ -54,6 +54,11 @@ type StructInfo struct {
 	Fields []StructField
 }
 
+// GenerateBuilders generates builders for all structs in a Go file
+func (g *Generator) GenerateBuilders(inputFile, outputDir string) error {
+	return g.ProcessFile(inputFile, outputDir)
+}
+
 // ProcessFile processes a single Go file and generates builders for all structs
 func (g *Generator) ProcessFile(inputFile, outputDir string) error {
 	if g.Options.Verbose {

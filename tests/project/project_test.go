@@ -7,7 +7,8 @@ import (
 )
 
 var _ = Describe("Project Builder", func() {
-	Describe("Basic Project Creation", func() {
+
+	Context("Basic Project Creation", func() {
 		It("should create a project with basic fields", func() {
 			// Create a project with basic fields
 			projectBuilder := builders.NewProjectBuilder().
@@ -31,7 +32,7 @@ var _ = Describe("Project Builder", func() {
 		})
 	})
 
-	Describe("Project with Tasks", func() {
+	Context("Project with Tasks", func() {
 		It("should create a project with tasks", func() {
 			// Create tasks
 			task1Builder := builders.NewTaskBuilder().
@@ -61,16 +62,16 @@ var _ = Describe("Project Builder", func() {
 			// Verify the project fields
 			Expect(project.Name).To(Equal("Test Project"))
 			Expect(project.Description).To(Equal("A test project"))
-			
+
 			// Verify the tasks
 			Expect(project.Tasks).To(HaveLen(2))
-			
+
 			// Verify first task
 			Expect(project.Tasks[0].Name).To(Equal("Task 1"))
 			Expect(project.Tasks[0].Description).To(Equal("First task"))
 			Expect(project.Tasks[0].Status).To(Equal("In Progress"))
 			Expect(project.Tasks[0].Priority).To(Equal("High"))
-			
+
 			// Verify second task
 			Expect(project.Tasks[1].Name).To(Equal("Task 2"))
 			Expect(project.Tasks[1].Description).To(Equal("Second task"))
@@ -79,7 +80,7 @@ var _ = Describe("Project Builder", func() {
 		})
 	})
 
-	Describe("Project Status", func() {
+	Context("Project Status", func() {
 		It("should create projects with different statuses", func() {
 			// Create projects with different statuses
 			activeProjectBuilder := builders.NewProjectBuilder().
@@ -106,7 +107,7 @@ var _ = Describe("Project Builder", func() {
 		})
 	})
 
-	Describe("Builder Cloning", func() {
+	Context("Builder Cloning", func() {
 		It("should clone a project builder correctly", func() {
 			// Create a base project builder
 			baseBuilder := builders.NewProjectBuilder().

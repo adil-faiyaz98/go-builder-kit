@@ -6,12 +6,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// TestBuilders is not needed as we already have TestBuildersPackage
-// func TestBuilders(t *testing.T) {
-// 	RegisterFailHandler(Fail)
-// 	RunSpecs(t, "Builders Suite")
-// }
-
 var _ = Describe("Builders", func() {
 	Describe("Project Builder", func() {
 		It("should handle string date fields correctly", func() {

@@ -7,7 +7,8 @@ import (
 )
 
 var _ = Describe("Education Builder", func() {
-	Describe("Basic Education Creation", func() {
+
+	Context("Basic Education Creation", func() {
 		It("should create an education with basic fields", func() {
 			// Create an education with basic fields
 			educationBuilder := builders.NewEducationBuilder().
@@ -29,7 +30,7 @@ var _ = Describe("Education Builder", func() {
 		})
 	})
 
-	Describe("Different Degree Types", func() {
+	Context("Different Degree Types", func() {
 		It("should create education entries with different degree types", func() {
 			// Create a Bachelor's degree
 			bsBuilder := builders.NewEducationBuilder().
@@ -83,7 +84,7 @@ var _ = Describe("Education Builder", func() {
 		})
 	})
 
-	Describe("Builder Cloning", func() {
+	Context("Builder Cloning", func() {
 		It("should clone an education builder correctly", func() {
 			// Create a base education builder
 			baseBuilder := builders.NewEducationBuilder().

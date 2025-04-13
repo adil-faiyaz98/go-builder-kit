@@ -7,7 +7,8 @@ import (
 )
 
 var _ = Describe("Address Builder", func() {
-	Describe("Basic Address Creation", func() {
+
+	Context("Basic Address Creation", func() {
 		It("should create an address with basic fields", func() {
 			// Create an address with basic fields
 			addressBuilder := builders.NewAddressBuilder().
@@ -31,7 +32,7 @@ var _ = Describe("Address Builder", func() {
 		})
 	})
 
-	Describe("Address with GeoLocation", func() {
+	Context("Address with GeoLocation", func() {
 		It("should create an address with geo coordinates", func() {
 			// Create a GeoLocation
 			geoLocationBuilder := builders.NewGeoLocationBuilder().
@@ -52,7 +53,7 @@ var _ = Describe("Address Builder", func() {
 			Expect(address.Street).To(Equal("123 Main St"))
 			Expect(address.City).To(Equal("San Francisco"))
 			Expect(address.State).To(Equal("CA"))
-			
+
 			// Verify the geo coordinates
 			Expect(address.Coordinates).NotTo(BeNil())
 			Expect(address.Coordinates.Latitude).To(Equal(37.7749))
@@ -60,7 +61,7 @@ var _ = Describe("Address Builder", func() {
 		})
 	})
 
-	Describe("Address Types", func() {
+	Context("Address Types", func() {
 		It("should create addresses with different types", func() {
 			// Create a home address
 			homeAddressBuilder := builders.NewAddressBuilder().
@@ -83,14 +84,14 @@ var _ = Describe("Address Builder", func() {
 			// Verify the home address
 			Expect(homeAddress.Street).To(Equal("123 Main St"))
 			Expect(homeAddress.Type).To(Equal("Home"))
-			
+
 			// Verify the work address
 			Expect(workAddress.Street).To(Equal("456 Market St"))
 			Expect(workAddress.Type).To(Equal("Work"))
 		})
 	})
 
-	Describe("Builder Cloning", func() {
+	Context("Builder Cloning", func() {
 		It("should clone an address builder correctly", func() {
 			// Create a base address builder
 			baseBuilder := builders.NewAddressBuilder().
@@ -115,7 +116,7 @@ var _ = Describe("Address Builder", func() {
 			// Verify the cloned address has the new values
 			Expect(clonedAddress.Street).To(Equal("456 Market St"))
 			Expect(clonedAddress.City).To(Equal("San Francisco")) // Unchanged
-			Expect(clonedAddress.State).To(Equal("CA")) // Unchanged
+			Expect(clonedAddress.State).To(Equal("CA"))           // Unchanged
 			Expect(clonedAddress.PostalCode).To(Equal("94105"))
 		})
 	})

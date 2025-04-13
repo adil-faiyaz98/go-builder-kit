@@ -7,7 +7,8 @@ import (
 )
 
 var _ = Describe("Department Builder", func() {
-	Describe("Basic Department Creation", func() {
+
+	Context("Basic Department Creation", func() {
 		It("should create a department with basic fields", func() {
 			// Create a department with basic fields
 			departmentBuilder := builders.NewDepartmentBuilder().
@@ -29,7 +30,7 @@ var _ = Describe("Department Builder", func() {
 		})
 	})
 
-	Describe("Department with Location", func() {
+	Context("Department with Location", func() {
 		It("should create a department with a location", func() {
 			// Create an address
 			addressBuilder := builders.NewAddressBuilder().
@@ -51,7 +52,7 @@ var _ = Describe("Department Builder", func() {
 			// Verify the department fields
 			Expect(department.Name).To(Equal("Engineering"))
 			Expect(department.Code).To(Equal("ENG"))
-			
+
 			// Verify the location
 			Expect(department.Location).NotTo(BeNil())
 			Expect(department.Location.Street).To(Equal("123 Main St"))
@@ -62,7 +63,7 @@ var _ = Describe("Department Builder", func() {
 		})
 	})
 
-	Describe("Department Types", func() {
+	Context("Department Types", func() {
 		It("should create departments with different types", func() {
 			// Create departments with different types
 			engineeringBuilder := builders.NewDepartmentBuilder().
@@ -89,18 +90,18 @@ var _ = Describe("Department Builder", func() {
 			Expect(engineering.Name).To(Equal("Engineering"))
 			Expect(engineering.Code).To(Equal("ENG"))
 			Expect(engineering.Budget).To(Equal(1000000.0))
-			
+
 			Expect(marketing.Name).To(Equal("Marketing"))
 			Expect(marketing.Code).To(Equal("MKT"))
 			Expect(marketing.Budget).To(Equal(500000.0))
-			
+
 			Expect(finance.Name).To(Equal("Finance"))
 			Expect(finance.Code).To(Equal("FIN"))
 			Expect(finance.Budget).To(Equal(750000.0))
 		})
 	})
 
-	Describe("Builder Cloning", func() {
+	Context("Builder Cloning", func() {
 		It("should clone a department builder correctly", func() {
 			// Create a base department builder
 			baseBuilder := builders.NewDepartmentBuilder().

@@ -2,6 +2,12 @@
 
 ![Release Status](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/release.yml/badge.svg)
 
+> **WARNING: This package is no longer maintained.**  
+> Please do **NOT** use or download this package, as it may have unresolved vulnerabilities, outdated dependencies, and is no longer supported.
+>
+> **Security advisories exist in this project's dependencies.**
+> See: [https://github.com/adil-faiyaz98/go-builder-kit/security/advisories](https://github.com/adil-faiyaz98/go-builder-kit/security/advisories)
+
 A powerful toolkit for implementing the Builder pattern in Go, designed to simplify the creation of complex and nested objects with validation and code generation.
 
 [![Go Builder Kit CI/CD](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/go.yml/badge.svg)](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/go.yml)

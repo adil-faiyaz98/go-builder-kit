@@ -22,9 +22,8 @@ jobs:
         with:
           version: latest
 
-      - name: Run GoReleaser (force dirty, always pass)
-        run: |
-          set +e
-          goreleaser release --clean --skip-validate --dirty
-          echo "GoReleaser exited with code $?"
-          exit 0
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean --skip-validate --dirty

@@ -30,10 +30,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Run GoReleaser
+      - name: Run GoReleaser (force release even if git is dirty)
         uses: goreleaser/goreleaser-action@v5
         with:
           version: latest
-          args: release --clean
+          args: release --clean --skip-validate --allow-dirty
         env:
           GITHUB_TOKEN: ${{ secrets.NewToken }}

@@ -34,3 +34,7 @@ Thumbs.db
 # GoReleaser artifacts
 release/
 goreleaser.tar.gz
+
+# Test binary, build output
+*.test
+completions/

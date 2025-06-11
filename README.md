@@ -1,4 +1,4 @@
-# Go Builder Kit v2.0.5
+# Go Builder Kit v2.1
 
 ![Release Status](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/release.yml/badge.svg)
 

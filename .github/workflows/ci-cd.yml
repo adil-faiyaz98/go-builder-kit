@@ -8,58 +8,30 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+  security-events: write
+
 jobs:
-  # Lint job disabled
-  # lint:
-  #   name: Lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
-
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v4
-  #       with:
-  #         go-version: "1.21"
-  #         cache: true
-
-  #     - name: Install golangci-lint
-  #       run: |
-  #         curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
-  #         golangci-lint --version
-
-  #     - name: Run golangci-lint
-  #       run: golangci-lint run --timeout=5m --skip-dirs=cmd
-
-  #     - name: Check for ineffective assignments
-  #       run: go install github.com/gordonklaus/ineffassign@latest && ineffassign ./...
-
-  #     - name: Check for misspellings
-  #       run: go install github.com/client9/misspell/cmd/misspell@latest && misspell -error .
-
-  #     - name: Check for code formatting
-  #       run: |
-  #         go install mvdan.cc/gofumpt@v0.4.0
-  #         test -z "$(gofumpt -l -d .)"
-
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Run tests with coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./models/... ./builders/... ./pkg/... ./tests/...
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.txt
           fail_ci_if_error: false
@@ -69,48 +41,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Run gosec
         run: |
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          go install github.com/securecode/gosec/v2/cmd/gosec@latest
           gosec -no-fail -fmt=sarif -out=gosec.sarif ./models/... ./builders/... ./pkg/...
-
-      # Skipping SARIF upload due to permission issues
-      # - name: Upload gosec report
-      #   uses: github/codeql-action/upload-sarif@v3
-      #   with:
-      #     sarif_file: gosec.sarif
-      #     wait-for-processing: true
 
       - name: Run nancy for dependency scanning
         run: |
           go list -json -deps ./... | go install github.com/sonatype-nexus-community/nancy@latest && nancy sleuth --no-color
-
-      # Govulncheck disabled
-      # - name: Run govulncheck
-      #   run: |
-      #     go install golang.org/x/vuln/cmd/govulncheck@latest
-      #     govulncheck ./models/... ./builders/... ./pkg/...
 
   compatibility:
     name: Compatibility
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ["1.19", "1.20", "1.21"]
+        go-version: ["1.20", "1.21", "1.22"]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
@@ -123,12 +82,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Run performance tests
@@ -140,12 +99,12 @@ jobs:
     needs: [test, security, compatibility, performance]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Build
@@ -158,24 +117,23 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
-          distribution: goreleaser
-          version: latest
+          version: v1.26.2
           args: release --clean
         env:
-           GITHUB_TOKEN: ${{ secrets.NewToken }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Go pkg.go.dev
         run: |
@@ -188,22 +146,22 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.22"
           cache: true
 
       - name: Generate documentation
         run: |
-          go install golang.org/x/tools/cmd/godoc@v0.11.0
+          go install golang.org/x/tools/cmd/godoc@latest
           mkdir -p docs
           godoc -url=/pkg/github.com/adil-faiyaz98/go-builder-kit > docs/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.NewToken }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs

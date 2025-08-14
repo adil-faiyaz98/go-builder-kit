@@ -2,22 +2,23 @@ package builders_test
 
 import (
 	"github.com/adil-faiyaz98/go-builder-kit/builders"
+	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Builder Registry", func() {
-	var registry *builders.BuilderRegistry
+	var registry *builder.BuilderRegistry
 
 	BeforeEach(func() {
 		// Create a new registry for each test
-		registry = builders.NewBuilderRegistry()
+		registry = builder.NewBuilderRegistry()
 	})
 
 	Context("Registering and retrieving builders", func() {
 		It("should register and retrieve a builder", func() {
 			// Register a builder
-			registry.Register("person", func() interface{} {
+			registry.Register("person", func() any {
 				return builders.NewPersonBuilder()
 			})
 
@@ -56,11 +57,11 @@ var _ = Describe("Builder Registry", func() {
 
 		It("should register multiple builders", func() {
 			// Register multiple builders
-			registry.Register("person", func() interface{} {
+			registry.Register("person", func() any {
 				return builders.NewPersonBuilder()
 			})
 
-			registry.Register("address", func() interface{} {
+			registry.Register("address", func() any {
 				return builders.NewAddressBuilder()
 			})
 
@@ -78,12 +79,12 @@ var _ = Describe("Builder Registry", func() {
 
 		It("should override a builder when registering with the same name", func() {
 			// Register a builder
-			registry.Register("person", func() interface{} {
+			registry.Register("person", func() any {
 				return builders.NewPersonBuilder().WithName("Original")
 			})
 
 			// Register another builder with the same name
-			registry.Register("person", func() interface{} {
+			registry.Register("person", func() any {
 				return builders.NewPersonBuilder().WithName("Override")
 			})
 

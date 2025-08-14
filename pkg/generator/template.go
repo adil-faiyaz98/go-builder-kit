@@ -4,7 +4,8 @@ package generator
 const BuilderTemplate = `package {{ .PackageName }}
 
 import (
-{{ .ImportLines }})
+{{ .ImportLines }}	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
+)
 
 // {{ .Struct.Name }}Builder builds a {{ .Struct.Name }} model
 type {{ .Struct.Name }}Builder struct {
@@ -35,6 +36,9 @@ func New{{ .Struct.Name }}BuilderWithDefaults() *{{ .Struct.Name }}Builder {
 {{- range .Struct.Fields }}
 // With{{ .Name }} sets the {{ .Name }}
 func (b *{{ $.Struct.Name }}Builder) With{{ .Name }}({{ if eq (ToLowerFirst .Name) "type" }}value {{ .Type }}{{ else }}{{ if .IsMap }}key {{ .KeyType }}, val {{ .ValType }}{{ else }}{{ ToParamName .Name }} {{ if .IsSlice }}{{ if .IsNested }}[]*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ else if .IsPointer }}{{ if .IsNested }}*{{ .BuilderName }}{{ else }}*{{ .Type }}{{ end }}{{ else if eq .Type "Time" }}time.Time{{ else if .IsNested }}*{{ .BuilderName }}{{ else }}{{ .Type }}{{ end }}{{ end }}{{ end }}) *{{ $.Struct.Name }}Builder {
+	if b == nil {
+		return b
+	}
 	{{- if and .IsSlice .IsNested }}
 	// Ensure the slice is initialized
 	if b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} == nil {
@@ -78,7 +82,11 @@ func (b *{{ $.Struct.Name }}Builder) With{{ .Name }}({{ if eq (ToLowerFirst .Nam
 	builtValue := {{ if eq (ToLowerFirst .Name) "type" }}value{{ else }}{{ ToParamName .Name }}{{ end }}.Build().(*{{ $.ModelsPackage | base }}.{{ .Type }})
 	b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = *builtValue
 	{{- else }}
+	{{- if eq .Type "string" }}
+	b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = builder.SanitizeString({{ if eq (ToLowerFirst .Name) "type" }}value{{ else }}{{ ToParamName .Name }}{{ end }})
+	{{- else }}
 	b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = {{ if eq (ToLowerFirst .Name) "type" }}value{{ else }}{{ ToParamName .Name }}{{ end }}
+	{{- end }}
 	{{- end }}
 	return b
 }
@@ -88,13 +96,18 @@ func (b *{{ $.Struct.Name }}Builder) With{{ .Name }}({{ if eq (ToLowerFirst .Nam
 {{- if and .IsSlice .IsNested }}
 // Add{{ .Name | Singular }} adds a single item to the {{ .Name }} slice
 func (b *{{ $.Struct.Name }}Builder) Add{{ .Name | Singular }}({{ ToParamName (.Name | Singular) }} *{{ .BuilderName }}) *{{ $.Struct.Name }}Builder {
-	// Ensure the slice is initialized
+	if b == nil {
+		return b
+	}
+	// Ensure the slice is initialized with capacity
 	if b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} == nil {
-		b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = []*{{ $.ModelsPackage | base }}.{{ .ElementType }}{}
+		b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = make([]*{{ $.ModelsPackage | base }}.{{ .ElementType }}, 0, 4) // Pre-allocate capacity
 	}
 	// Handle nested slice element
-	builtValue := {{ ToParamName (.Name | Singular) }}.Build().(*{{ $.ModelsPackage | base }}.{{ .ElementType }})
-	b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = append(b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }}, builtValue)
+	if {{ ToParamName (.Name | Singular) }} != nil {
+		builtValue := {{ ToParamName (.Name | Singular) }}.Build().(*{{ $.ModelsPackage | base }}.{{ .ElementType }})
+		b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }} = append(b.{{ ToLowerFirst $.Struct.Name }}.{{ .Name }}, builtValue)
+	}
 	return b
 }
 {{- end }}
@@ -118,19 +131,26 @@ func (b *{{ .Struct.Name }}Builder) BuildPtr() *{{ .ModelsPackage | base }}.{{ .
 
 // BuildAndValidate builds the {{ .Struct.Name }} and validates it
 func (b *{{ .Struct.Name }}Builder) BuildAndValidate() (*{{ .ModelsPackage | base }}.{{ .Struct.Name }}, error) {
+	if b == nil || b.{{ ToLowerFirst .Struct.Name }} == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	{{ ToLowerFirst .Struct.Name }} := b.{{ ToLowerFirst .Struct.Name }}
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc({{ ToLowerFirst .Struct.Name }}); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}({{ ToLowerFirst .Struct.Name }}).(interface{ Validate() error }); ok {
+	if v, ok := any({{ ToLowerFirst .Struct.Name }}).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return {{ ToLowerFirst .Struct.Name }}, err
+			return {{ ToLowerFirst .Struct.Name }}, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -148,11 +168,25 @@ func (b *{{ .Struct.Name }}Builder) MustBuild() *{{ .ModelsPackage | base }}.{{ 
 
 // Clone creates a deep copy of the builder
 func (b *{{ .Struct.Name }}Builder) Clone() *{{ .Struct.Name }}Builder {
-	cloned{{ .Struct.Name }} := *b.{{ ToLowerFirst .Struct.Name }}
-	return &{{ .Struct.Name }}Builder{
-		{{ ToLowerFirst .Struct.Name }}: &cloned{{ .Struct.Name }},
-		validationFuncs: append([]func(*{{ .ModelsPackage | base }}.{{ .Struct.Name }}) error{}, b.validationFuncs...),
+	if b == nil || b.{{ ToLowerFirst .Struct.Name }} == nil {
+		return New{{ .Struct.Name }}Builder()
 	}
+
+	// Deep copy the struct
+	cloned{{ .Struct.Name }} := *b.{{ ToLowerFirst .Struct.Name }}
+
+	// Create new builder with cloned data
+	clonedBuilder := &{{ .Struct.Name }}Builder{
+		{{ ToLowerFirst .Struct.Name }}: &cloned{{ .Struct.Name }},
+		validationFuncs: make([]func(*{{ .ModelsPackage | base }}.{{ .Struct.Name }}) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }
 `
 

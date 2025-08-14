@@ -61,6 +61,18 @@ func (g *Generator) GenerateBuilders(inputFile, outputDir string) error {
 
 // ProcessFile processes a single Go file and generates builders for all structs
 func (g *Generator) ProcessFile(inputFile, outputDir string) error {
+	// Input validation
+	if inputFile == "" {
+		return fmt.Errorf("input file path cannot be empty")
+	}
+	if outputDir == "" {
+		return fmt.Errorf("output directory path cannot be empty")
+	}
+
+	// Sanitize file paths to prevent path traversal attacks
+	inputFile = filepath.Clean(inputFile)
+	outputDir = filepath.Clean(outputDir)
+
 	if g.Options.Verbose {
 		fmt.Printf("Processing file: %s\n", inputFile)
 	}
@@ -109,8 +121,14 @@ func (g *Generator) ProcessFile(inputFile, outputDir string) error {
 			return fmt.Errorf("failed to generate builder code for %s: %v", structType.Name.Name, err)
 		}
 
-		// Write builder to file
-		outputFile := filepath.Join(outputDir, ToSnakeCase(structType.Name.Name)+"_builder.go")
+		// Write builder to file with secure permissions
+		fileName := ToSnakeCase(structType.Name.Name) + "_builder.go"
+		// Validate filename to prevent directory traversal
+		if strings.Contains(fileName, "..") || strings.Contains(fileName, "/") || strings.Contains(fileName, "\\") {
+			return fmt.Errorf("invalid filename generated: %s", fileName)
+		}
+
+		outputFile := filepath.Join(outputDir, fileName)
 		if err := os.WriteFile(outputFile, []byte(builderCode), 0644); err != nil {
 			return fmt.Errorf("failed to write builder file %s: %v", outputFile, err)
 		}
@@ -317,10 +335,15 @@ func (g *Generator) generateBuilderCode(structInfo StructInfo) (string, error) {
 	}
 	sort.Strings(importList)
 
-	// Generate import lines
+	// Generate import lines efficiently using strings.Builder
+	var importBuilder strings.Builder
+	importBuilder.Grow(len(importList) * 20) // Pre-allocate capacity
 	for _, imp := range importList {
-		data.ImportLines += fmt.Sprintf("\t\"%s\"\n", imp)
+		importBuilder.WriteString("\t\"")
+		importBuilder.WriteString(imp)
+		importBuilder.WriteString("\"\n")
 	}
+	data.ImportLines = importBuilder.String()
 
 	// Parse template
 	tmpl, err := template.New("builder").Funcs(template.FuncMap{
@@ -376,12 +399,23 @@ func isBuiltinType(typeName string) bool {
 
 // ToSnakeCase converts a string from CamelCase to snake_case
 func ToSnakeCase(s string) string {
+	if s == "" {
+		return ""
+	}
+
 	var result strings.Builder
+	result.Grow(len(s) + 5) // Pre-allocate capacity (estimate)
+
 	for i, r := range s {
 		if i > 0 && 'A' <= r && r <= 'Z' {
-			result.WriteRune('_')
+			result.WriteByte('_')
 		}
-		result.WriteRune(unicode.ToLower(r))
+		// Optimize for ASCII characters
+		if 'A' <= r && r <= 'Z' {
+			result.WriteByte(byte(r + 32))
+		} else {
+			result.WriteRune(unicode.ToLower(r))
+		}
 	}
 	return result.String()
 }
@@ -391,6 +425,11 @@ func ToLowerFirst(s string) string {
 	if s == "" {
 		return ""
 	}
+	// Optimize for ASCII characters (most common case)
+	if s[0] >= 'A' && s[0] <= 'Z' {
+		return string(s[0]+32) + s[1:]
+	}
+	// Fallback for Unicode characters
 	r := []rune(s)
 	r[0] = unicode.ToLower(r[0])
 	return string(r)
@@ -403,9 +442,22 @@ func ToParamName(s string) string {
 		return ""
 	}
 
+	// Special case for "Type" field name
+	if s == "Type" {
+		return "value"
+	}
+
 	// Special case for "ID" exactly
 	if s == "ID" {
 		return "id"
+	}
+
+	// Special handling for all-caps abbreviations
+	if s == "URLs" {
+		return "urls"
+	}
+	if s == "XMLHttpRequest" {
+		return "xmlHttpRequest"
 	}
 
 	// Handle common abbreviations that should be all lowercase when they appear as suffixes

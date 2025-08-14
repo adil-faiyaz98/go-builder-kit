@@ -1,19 +1,23 @@
 package builder
 
+import (
+	"fmt"
+)
+
 // GenericBuilder is a generic builder interface for creating objects of type T
 type GenericBuilder[T any] interface {
 	// Build builds the object and returns it
 	Build() T
-	
+
 	// BuildPtr builds the object and returns a pointer to it
 	BuildPtr() *T
-	
+
 	// BuildAndValidate builds the object, validates it, and returns it along with any validation errors
 	BuildAndValidate() (*T, error)
-	
+
 	// MustBuild builds the object and panics if validation fails
 	MustBuild() *T
-	
+
 	// Clone creates a deep copy of the builder
 	Clone() GenericBuilder[T]
 }
@@ -27,7 +31,7 @@ type GenericValidator[T any] interface {
 // GenericBuilderWithValidation is a generic builder interface with validation support
 type GenericBuilderWithValidation[T any] interface {
 	GenericBuilder[T]
-	
+
 	// WithValidation adds a validation function to the builder
 	WithValidation(fn func(T) error) GenericBuilderWithValidation[T]
 }
@@ -36,7 +40,7 @@ type GenericBuilderWithValidation[T any] interface {
 type BaseGenericBuilder[T any] struct {
 	// build is a function that builds the object
 	build func() T
-	
+
 	// validators is a slice of validation functions
 	validators []func(T) error
 }
@@ -68,14 +72,22 @@ func (b *BaseGenericBuilder[T]) WithValidation(fn func(T) error) GenericBuilderW
 
 // BuildAndValidate builds the object, validates it, and returns it along with any validation errors
 func (b *BaseGenericBuilder[T]) BuildAndValidate() (*T, error) {
+	if b == nil || b.build == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	obj := b.build()
-	
-	for _, validator := range b.validators {
+
+	// Run all validators and collect errors
+	for i, validator := range b.validators {
+		if validator == nil {
+			continue // Skip nil validators
+		}
 		if err := validator(obj); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("validation failed at index %d: %w", i, err)
 		}
 	}
-	
+
 	return &obj, nil
 }
 
@@ -90,11 +102,19 @@ func (b *BaseGenericBuilder[T]) MustBuild() *T {
 
 // Clone creates a deep copy of the builder
 func (b *BaseGenericBuilder[T]) Clone() GenericBuilder[T] {
+	if b == nil {
+		return nil
+	}
+
 	clone := &BaseGenericBuilder[T]{
 		build:      b.build,
-		validators: make([]func(T) error, len(b.validators)),
+		validators: make([]func(T) error, 0, len(b.validators)),
 	}
-	
-	copy(clone.validators, b.validators)
+
+	// Copy validators safely
+	if len(b.validators) > 0 {
+		clone.validators = append(clone.validators, b.validators...)
+	}
+
 	return clone
 }

@@ -2,7 +2,9 @@ package builders
 
 import (
 	"fmt"
+
 	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
 )
 
 // PersonBuilder builds a Person model
@@ -16,28 +18,28 @@ type PersonBuilder struct {
 func NewPersonBuilder() *PersonBuilder {
 	return &PersonBuilder{
 		person: &models.Person{
-			ID: "",
-			Name: "",
-			Age: 0,
-			Email: "",
-			Phone: "",
-			Birthdate: "",
-			Gender: "",
-			Nationality: "",
+			ID:            "",
+			Name:          "",
+			Age:           0,
+			Email:         "",
+			Phone:         "",
+			Birthdate:     "",
+			Gender:        "",
+			Nationality:   "",
 			MaritalStatus: "",
-			Address: nil,
-			Education: nil,
-			Profile: interface{}(0),
-			Bank: nil,
-			Employment: nil,
-			Friends: []*models.Person{},
-			Family: []*models.FamilyMember{},
-			Health: interface{}(0),
-			Digital: interface{}(0),
+			Address:       nil,
+			Education:     nil,
+			Profile:       nil,
+			Bank:          nil,
+			Employment:    nil,
+			Friends:       []*models.Person{},
+			Family:        []*models.FamilyMember{},
+			Health:        nil,
+			Digital:       nil,
 			TravelHistory: []*models.Travel{},
-			Preferences: nil,
-			CreatedAt: "",
-			UpdatedAt: "",
+			Preferences:   nil,
+			CreatedAt:     "",
+			UpdatedAt:     "",
 		},
 		validationFuncs: []func(*models.Person) error{},
 	}
@@ -49,33 +51,49 @@ func NewPersonBuilderWithDefaults() *PersonBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *PersonBuilder) WithID(id string) *PersonBuilder {
-	b.person.ID = id
+	if b == nil {
+		return b
+	}
+	b.person.ID = builder.SanitizeString(id)
 	return b
 }
 
 // WithName sets the Name
 func (b *PersonBuilder) WithName(name string) *PersonBuilder {
-	b.person.Name = name
+	if b == nil {
+		return b
+	}
+	b.person.Name = builder.SanitizeString(name)
 	return b
 }
 
 // WithAge sets the Age
 func (b *PersonBuilder) WithAge(age int) *PersonBuilder {
+	if b == nil {
+		return b
+	}
 	b.person.Age = age
 	return b
 }
 
 // WithEmail sets the Email
 func (b *PersonBuilder) WithEmail(email string) *PersonBuilder {
-	b.person.Email = email
+	if b == nil {
+		return b
+	}
+	b.person.Email = builder.SanitizeString(email)
 	return b
 }
 
 // WithPhone sets the Phone
 func (b *PersonBuilder) WithPhone(phone string) *PersonBuilder {
-	b.person.Phone = phone
+	if b == nil {
+		return b
+	}
+	b.person.Phone = builder.SanitizeString(phone)
 	return b
 }
 
@@ -118,7 +136,10 @@ func (b *PersonBuilder) WithEducation(education *EducationBuilder) *PersonBuilde
 }
 
 // WithProfile sets the Profile
-func (b *PersonBuilder) WithProfile(profile interface{}) *PersonBuilder {
+func (b *PersonBuilder) WithProfile(profile any) *PersonBuilder {
+	if b == nil {
+		return b
+	}
 	b.person.Profile = profile
 	return b
 }
@@ -172,13 +193,19 @@ func (b *PersonBuilder) WithFamily(family []*FamilyMemberBuilder) *PersonBuilder
 }
 
 // WithHealth sets the Health
-func (b *PersonBuilder) WithHealth(health interface{}) *PersonBuilder {
+func (b *PersonBuilder) WithHealth(health any) *PersonBuilder {
+	if b == nil {
+		return b
+	}
 	b.person.Health = health
 	return b
 }
 
 // WithDigital sets the Digital
-func (b *PersonBuilder) WithDigital(digital interface{}) *PersonBuilder {
+func (b *PersonBuilder) WithDigital(digital any) *PersonBuilder {
+	if b == nil {
+		return b
+	}
 	b.person.Digital = digital
 	return b
 }
@@ -230,6 +257,7 @@ func (b *PersonBuilder) AddFriend(friend *PersonBuilder) *PersonBuilder {
 	b.person.Friends = append(b.person.Friends, builtValue)
 	return b
 }
+
 // AddFamily adds a single item to the Family slice
 func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	// Ensure the slice is initialized
@@ -241,6 +269,7 @@ func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	b.person.Family = append(b.person.Family, builtValue)
 	return b
 }
+
 // AddTravelHistory adds a single item to the TravelHistory slice
 func (b *PersonBuilder) AddTravelHistory(travelHistory *TravelBuilder) *PersonBuilder {
 	// Ensure the slice is initialized
@@ -260,7 +289,10 @@ func (b *PersonBuilder) WithValidation(validationFunc func(*models.Person) error
 }
 
 // Build builds the Person
-func (b *PersonBuilder) Build() interface{} {
+func (b *PersonBuilder) Build() any {
+	if b == nil {
+		return nil
+	}
 	return b.person
 }
 
@@ -271,19 +303,26 @@ func (b *PersonBuilder) BuildPtr() *models.Person {
 
 // BuildAndValidate builds the Person and validates it
 func (b *PersonBuilder) BuildAndValidate() (*models.Person, error) {
+	if b == nil || b.person == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	person := b.person
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(person); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(person).(interface{ Validate() error }); ok {
+	if v, ok := any(person).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return person, err
+			return person, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -301,9 +340,39 @@ func (b *PersonBuilder) MustBuild() *models.Person {
 
 // Clone creates a deep copy of the builder
 func (b *PersonBuilder) Clone() *PersonBuilder {
-	clonedPerson := *b.person
-	return &PersonBuilder{
-		person: &clonedPerson,
-		validationFuncs: append([]func(*models.Person) error{}, b.validationFuncs...),
+	if b == nil || b.person == nil {
+		return NewPersonBuilder()
 	}
+
+	// Deep copy the person struct
+	clonedPerson := *b.person
+
+	// Deep copy slices to avoid shared references
+	if b.person.Friends != nil {
+		clonedPerson.Friends = make([]*models.Person, len(b.person.Friends))
+		copy(clonedPerson.Friends, b.person.Friends)
+	}
+
+	if b.person.Family != nil {
+		clonedPerson.Family = make([]*models.FamilyMember, len(b.person.Family))
+		copy(clonedPerson.Family, b.person.Family)
+	}
+
+	if b.person.TravelHistory != nil {
+		clonedPerson.TravelHistory = make([]*models.Travel, len(b.person.TravelHistory))
+		copy(clonedPerson.TravelHistory, b.person.TravelHistory)
+	}
+
+	// Create new builder with cloned data
+	clonedBuilder := &PersonBuilder{
+		person:          &clonedPerson,
+		validationFuncs: make([]func(*models.Person) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

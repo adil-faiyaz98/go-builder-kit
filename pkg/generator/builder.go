@@ -8,9 +8,15 @@ import (
 	"unicode"
 )
 
+// Pre-compiled regex patterns for performance
+var (
+	matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	matchAllCap   = regexp.MustCompile("([a-z0-9])([A-Z])")
+)
+
 // Builder is the interface that all builders must implement
 type Builder interface {
-	Build() interface{}
+	Build() any
 }
 
 // BuilderFunc is a function that creates a new builder
@@ -91,9 +97,6 @@ func CreateBuilder(typeName string) (Builder, error) {
 
 // CamelToSnake converts a camelCase string to snake_case
 func CamelToSnake(s string) string {
-	var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
 	snake := matchFirstCap.ReplaceAllString(s, "${1}_${2}")
 	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
 	return strings.ToLower(snake)

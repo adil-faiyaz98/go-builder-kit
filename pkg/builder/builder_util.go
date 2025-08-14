@@ -45,6 +45,15 @@ func (e ValidationErrors) HasErrors() bool {
 
 // ValidateRequired validates that a field is not empty
 func ValidateRequired(value any, field string, errors *ValidationErrors) {
+	if errors == nil {
+		return // Defensive programming - don't panic if errors is nil
+	}
+
+	if field == "" {
+		errors.Add("unknown", "field name cannot be empty")
+		return
+	}
+
 	if value == nil {
 		errors.Add(field, "cannot be empty")
 		return
@@ -65,6 +74,59 @@ func ValidateRequired(value any, field string, errors *ValidationErrors) {
 			errors.Add(field, "cannot be empty")
 		}
 	}
+}
+
+// ValidateStringLength validates string length constraints
+func ValidateStringLength(value string, field string, minLen, maxLen int, errors *ValidationErrors) {
+	if errors == nil {
+		return
+	}
+
+	if field == "" {
+		errors.Add("unknown", "field name cannot be empty")
+		return
+	}
+
+	length := len(value)
+	if minLen >= 0 && length < minLen {
+		errors.Add(field, fmt.Sprintf("must be at least %d characters long", minLen))
+	}
+	if maxLen >= 0 && length > maxLen {
+		errors.Add(field, fmt.Sprintf("must be at most %d characters long", maxLen))
+	}
+}
+
+// ValidateNumericRange validates numeric values are within range
+func ValidateNumericRange(value, min, max float64, field string, errors *ValidationErrors) {
+	if errors == nil {
+		return
+	}
+
+	if field == "" {
+		errors.Add("unknown", "field name cannot be empty")
+		return
+	}
+
+	if value < min {
+		errors.Add(field, fmt.Sprintf("must be at least %g", min))
+	}
+	if value > max {
+		errors.Add(field, fmt.Sprintf("must be at most %g", max))
+	}
+}
+
+// SanitizeString removes potentially dangerous characters from strings
+func SanitizeString(input string) string {
+	// Remove null bytes and control characters except tab, newline, and carriage return
+	sanitized := strings.Map(func(r rune) rune {
+		if r == 0 || (r < 32 && r != 9 && r != 10 && r != 13) {
+			return -1 // Remove character
+		}
+		return r
+	}, input)
+
+	// Trim whitespace
+	return strings.TrimSpace(sanitized)
 }
 
 // ValidateMinLength validates that a string has a minimum length

@@ -1,5 +1,3 @@
-github.com/adil-faiyaz98/go-builder-kit v1.9.2 h1:vJKB2E+aezizVsJ2ISbTHMAjE2atk82VK8x5n8vb6fY=
-github.com/adil-faiyaz98/go-builder-kit v1.9.2/go.mod h1:Z94Qxp7XUrz1QxAcs3n9aAaRykyskYSOsQPiVHh6lfI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=

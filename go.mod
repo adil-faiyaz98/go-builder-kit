@@ -4,7 +4,7 @@ go 1.23.0
 
 toolchain go1.24.0
 
-// This repository is tagged as v1.9.4 for GitHub display purposes,
+// This repository is tagged as v1.10.0 for GitHub display purposes,
 // but the actual module is v2. Users should install the v2 module:
 // go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
 

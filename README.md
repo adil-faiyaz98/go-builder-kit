@@ -6,7 +6,7 @@
 ![Release Status](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/release.yml/badge.svg)
 [![Latest Version](https://img.shields.io/badge/version-v2.1.3-blue.svg)](https://github.com/adil-faiyaz98/go-builder-kit/releases/latest)
 
-> **⚠️ IMPORTANT: This repo shows v1.9.4 as latest tag for GitHub display, but you should use v2.1.3+**
+> **⚠️ IMPORTANT: This repo shows v1.10.0 as latest tag for GitHub display, but you should use v2.1.3+**
 > 
 > ```bash
 > go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
@@ -104,6 +104,7 @@ go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
 | **v2.1.3** | ✅ **Latest Stable** | `github.com/adil-faiyaz98/go-builder-kit/v2` | **Use This** |
 | v2.1.2 | ✅ Stable | `github.com/adil-faiyaz98/go-builder-kit/v2` | OK to use |
 | v2.0.0 - v2.1.1 | ❌ **Retracted** | `github.com/adil-faiyaz98/go-builder-kit/v2` | **Avoid** |
+| v1.10.0 | ⚠️ **Display Only** | `github.com/adil-faiyaz98/go-builder-kit` | **GitHub UI tag** |
 | v1.9.x | ⚠️ **Legacy** | `github.com/adil-faiyaz98/go-builder-kit` | **Deprecated** |
 
 ### Upgrading from v1.x

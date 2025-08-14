@@ -5,31 +5,31 @@ import (
 	"sync"
 )
 
-// BuilderFunc is a function that creates a new builder
-type BuilderFunc func() interface{}
+// Func is a function that creates a new builder
+type Func func() interface{}
 
-// BuilderRegistry is a registry of builder functions
-type BuilderRegistry struct {
-	builders map[string]BuilderFunc
+// Registry is a registry of builder functions
+type Registry struct {
+	builders map[string]Func
 	mu       sync.RWMutex
 }
 
-// NewBuilderRegistry creates a new BuilderRegistry
-func NewBuilderRegistry() *BuilderRegistry {
-	return &BuilderRegistry{
-		builders: make(map[string]BuilderFunc),
+// NewBuilderRegistry creates a new Registry
+func NewBuilderRegistry() *Registry {
+	return &Registry{
+		builders: make(map[string]Func),
 	}
 }
 
 // Register registers a builder function
-func (r *BuilderRegistry) Register(name string, fn BuilderFunc) {
+func (r *Registry) Register(name string, fn Func) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.builders[name] = fn
 }
 
 // Get returns a builder function by name
-func (r *BuilderRegistry) Get(name string) (BuilderFunc, bool) {
+func (r *Registry) Get(name string) (Func, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	fn, ok := r.builders[name]
@@ -37,21 +37,21 @@ func (r *BuilderRegistry) Get(name string) (BuilderFunc, bool) {
 }
 
 // GetAll returns all registered builder functions
-func (r *BuilderRegistry) GetAll() map[string]BuilderFunc {
+func (r *Registry) GetAll() map[string]Func {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	// Create a copy to avoid race conditions
-	result := make(map[string]BuilderFunc, len(r.builders))
+	result := make(map[string]Func, len(r.builders))
 	for k, v := range r.builders {
 		result[k] = v
 	}
-	
+
 	return result
 }
 
 // Create creates a new builder by name
-func (r *BuilderRegistry) Create(name string) (interface{}, error) {
+func (r *Registry) Create(name string) (interface{}, error) {
 	fn, ok := r.Get(name)
 	if !ok {
 		return nil, fmt.Errorf("builder not found: %s", name)
@@ -63,17 +63,17 @@ func (r *BuilderRegistry) Create(name string) (interface{}, error) {
 var DefaultRegistry = NewBuilderRegistry()
 
 // Register registers a builder function in the default registry
-func Register(name string, fn BuilderFunc) {
+func Register(name string, fn Func) {
 	DefaultRegistry.Register(name, fn)
 }
 
 // Get returns a builder function by name from the default registry
-func Get(name string) (BuilderFunc, bool) {
+func Get(name string) (Func, bool) {
 	return DefaultRegistry.Get(name)
 }
 
 // GetAll returns all registered builder functions from the default registry
-func GetAll() map[string]BuilderFunc {
+func GetAll() map[string]Func {
 	return DefaultRegistry.GetAll()
 }
 

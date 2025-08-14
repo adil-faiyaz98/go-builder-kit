@@ -17,17 +17,17 @@ type AccountBuilder struct {
 func NewAccountBuilder() *AccountBuilder {
 	return &AccountBuilder{
 		account: &models.Account{
-			ID: "",
-			Type: "",
-			Number: "",
-			Balance: 0.0,
-			Currency: "",
-			OpenDate: "",
-			Status: "",
-			Transactions: []any{},
-			InterestRate: 0.0,
-			IsJoint: false,
-			CoOwners: []any{},
+			ID:             "",
+			Type:           "",
+			Number:         "",
+			Balance:        0.0,
+			Currency:       "",
+			OpenDate:       "",
+			Status:         "",
+			Transactions:   []any{},
+			InterestRate:   0.0,
+			IsJoint:        false,
+			CoOwners:       []any{},
 			OverdraftLimit: 0.0,
 		},
 		validationFuncs: []func(*models.Account) error{},
@@ -40,6 +40,7 @@ func NewAccountBuilderWithDefaults() *AccountBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *AccountBuilder) WithID(id string) *AccountBuilder {
 	if b == nil {
@@ -148,7 +149,6 @@ func (b *AccountBuilder) WithOverdraftLimit(overdraftLimit float64) *AccountBuil
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *AccountBuilder) WithValidation(validationFunc func(*models.Account) error) *AccountBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -213,7 +213,7 @@ func (b *AccountBuilder) Clone() *AccountBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &AccountBuilder{
-		account: &clonedAccount,
+		account:         &clonedAccount,
 		validationFuncs: make([]func(*models.Account) error, 0, len(b.validationFuncs)),
 	}
 

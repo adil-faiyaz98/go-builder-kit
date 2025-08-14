@@ -17,22 +17,22 @@ type BondBuilder struct {
 func NewBondBuilder() *BondBuilder {
 	return &BondBuilder{
 		bond: &models.Bond{
-			ID: "",
-			ISIN: "",
-			Name: "",
-			Issuer: "",
-			Type: "",
-			FaceValue: 0.0,
-			CouponRate: 0.0,
-			MaturityDate: "",
-			PurchaseDate: "",
-			PurchasePrice: 0.0,
-			CurrentPrice: 0.0,
-			Quantity: 0,
-			Currency: "",
+			ID:               "",
+			ISIN:             "",
+			Name:             "",
+			Issuer:           "",
+			Type:             "",
+			FaceValue:        0.0,
+			CouponRate:       0.0,
+			MaturityDate:     "",
+			PurchaseDate:     "",
+			PurchasePrice:    0.0,
+			CurrentPrice:     0.0,
+			Quantity:         0,
+			Currency:         "",
 			PaymentFrequency: "",
-			Rating: "",
-			Yield: 0.0,
+			Rating:           "",
+			Yield:            0.0,
 		},
 		validationFuncs: []func(*models.Bond) error{},
 	}
@@ -44,6 +44,7 @@ func NewBondBuilderWithDefaults() *BondBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *BondBuilder) WithID(id string) *BondBuilder {
 	if b == nil {
@@ -188,7 +189,6 @@ func (b *BondBuilder) WithYield(yield float64) *BondBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *BondBuilder) WithValidation(validationFunc func(*models.Bond) error) *BondBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -253,7 +253,7 @@ func (b *BondBuilder) Clone() *BondBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &BondBuilder{
-		bond: &clonedBond,
+		bond:            &clonedBond,
 		validationFuncs: make([]func(*models.Bond) error, 0, len(b.validationFuncs)),
 	}
 

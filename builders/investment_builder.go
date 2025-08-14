@@ -17,14 +17,14 @@ type InvestmentBuilder struct {
 func NewInvestmentBuilder() *InvestmentBuilder {
 	return &InvestmentBuilder{
 		investment: &models.Investment{
-			ID: "",
-			Name: "",
-			Type: "",
-			Value: 0.0,
-			StartDate: "",
-			EndDate: "",
-			Risk: "",
-			Portfolio: nil,
+			ID:          "",
+			Name:        "",
+			Type:        "",
+			Value:       0.0,
+			StartDate:   "",
+			EndDate:     "",
+			Risk:        "",
+			Portfolio:   nil,
 			Performance: []*models.PerformanceRecord{},
 		},
 		validationFuncs: []func(*models.Investment) error{},
@@ -37,6 +37,7 @@ func NewInvestmentBuilderWithDefaults() *InvestmentBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *InvestmentBuilder) WithID(id string) *InvestmentBuilder {
 	if b == nil {
@@ -211,7 +212,7 @@ func (b *InvestmentBuilder) Clone() *InvestmentBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &InvestmentBuilder{
-		investment: &clonedInvestment,
+		investment:      &clonedInvestment,
 		validationFuncs: make([]func(*models.Investment) error, 0, len(b.validationFuncs)),
 	}
 

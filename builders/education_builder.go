@@ -17,17 +17,17 @@ type EducationBuilder struct {
 func NewEducationBuilder() *EducationBuilder {
 	return &EducationBuilder{
 		education: &models.Education{
-			Degree: "",
+			Degree:      "",
 			Institution: "",
-			Location: nil,
-			StartDate: "",
-			EndDate: "",
-			GPA: 0.0,
-			Honors: []string{},
-			Major: "",
-			Minor: "",
-			Courses: []*models.Course{},
-			Activities: []string{},
+			Location:    nil,
+			StartDate:   "",
+			EndDate:     "",
+			GPA:         0.0,
+			Honors:      []string{},
+			Major:       "",
+			Minor:       "",
+			Courses:     []*models.Course{},
+			Activities:  []string{},
 		},
 		validationFuncs: []func(*models.Education) error{},
 	}
@@ -39,6 +39,7 @@ func NewEducationBuilderWithDefaults() *EducationBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithDegree sets the Degree
 func (b *EducationBuilder) WithDegree(degree string) *EducationBuilder {
 	if b == nil {
@@ -231,7 +232,7 @@ func (b *EducationBuilder) Clone() *EducationBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &EducationBuilder{
-		education: &clonedEducation,
+		education:       &clonedEducation,
 		validationFuncs: make([]func(*models.Education) error, 0, len(b.validationFuncs)),
 	}
 

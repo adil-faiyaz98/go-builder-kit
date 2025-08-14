@@ -1,5 +1,6 @@
 # Binaries for programs and plugins
 *.exe
+*.exe~
 *.dll
 *.so
 *.dylib
@@ -18,6 +19,8 @@ dist/
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
 
 # Dependency directories (remove the comment below if you use Go modules)
 vendor/
@@ -26,9 +29,15 @@ vendor/
 completions/
 manpages/
 coverage.out
+coverage.html
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # GoReleaser artifacts
@@ -38,3 +47,14 @@ goreleaser.tar.gz
 # Test binary, build output
 *.test
 completions/
+
+# Go workspace file
+go.work
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Generated builder files for development
+builder-gen.exe

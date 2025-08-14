@@ -17,14 +17,14 @@ type CourseBuilder struct {
 func NewCourseBuilder() *CourseBuilder {
 	return &CourseBuilder{
 		course: &models.Course{
-			Code: "",
-			Name: "",
+			Code:        "",
+			Name:        "",
 			Description: "",
-			Credits: 0.0,
-			Grade: "",
-			Semester: "",
-			Year: 0,
-			Instructor: "",
+			Credits:     0.0,
+			Grade:       "",
+			Semester:    "",
+			Year:        0,
+			Instructor:  "",
 		},
 		validationFuncs: []func(*models.Course) error{},
 	}
@@ -36,6 +36,7 @@ func NewCourseBuilderWithDefaults() *CourseBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithCode sets the Code
 func (b *CourseBuilder) WithCode(code string) *CourseBuilder {
 	if b == nil {
@@ -108,7 +109,6 @@ func (b *CourseBuilder) WithInstructor(instructor string) *CourseBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *CourseBuilder) WithValidation(validationFunc func(*models.Course) error) *CourseBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -173,7 +173,7 @@ func (b *CourseBuilder) Clone() *CourseBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &CourseBuilder{
-		course: &clonedCourse,
+		course:          &clonedCourse,
 		validationFuncs: make([]func(*models.Course) error, 0, len(b.validationFuncs)),
 	}
 

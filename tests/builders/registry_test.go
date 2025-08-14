@@ -8,7 +8,7 @@ import (
 )
 
 var _ = Describe("Builder Registry", func() {
-	var registry *builder.BuilderRegistry
+	var registry *builder.Registry
 
 	BeforeEach(func() {
 		// Create a new registry for each test

@@ -17,16 +17,16 @@ type ProjectBuilder struct {
 func NewProjectBuilder() *ProjectBuilder {
 	return &ProjectBuilder{
 		project: &models.Project{
-			Name: "",
+			Name:        "",
 			Description: "",
-			StartDate: "",
-			EndDate: "",
-			Status: "",
-			Budget: 0.0,
-			Manager: interface{}(0),
-			Team: []interface{}{},
-			Members: []interface{}{},
-			Tasks: []*models.Task{},
+			StartDate:   "",
+			EndDate:     "",
+			Status:      "",
+			Budget:      0.0,
+			Manager:     interface{}(0),
+			Team:        []interface{}{},
+			Members:     []interface{}{},
+			Tasks:       []*models.Task{},
 		},
 		validationFuncs: []func(*models.Project) error{},
 	}
@@ -38,6 +38,7 @@ func NewProjectBuilderWithDefaults() *ProjectBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithName sets the Name
 func (b *ProjectBuilder) WithName(name string) *ProjectBuilder {
 	if b == nil {
@@ -220,7 +221,7 @@ func (b *ProjectBuilder) Clone() *ProjectBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &ProjectBuilder{
-		project: &clonedProject,
+		project:         &clonedProject,
 		validationFuncs: make([]func(*models.Project) error, 0, len(b.validationFuncs)),
 	}
 

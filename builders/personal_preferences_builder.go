@@ -17,22 +17,22 @@ type PersonalPreferencesBuilder struct {
 func NewPersonalPreferencesBuilder() *PersonalPreferencesBuilder {
 	return &PersonalPreferencesBuilder{
 		personalPreferences: &models.PersonalPreferences{
-			FavoriteColor: "",
-			FavoriteColors: []string{},
-			FavoriteFood: "",
-			FavoriteFoods: []string{},
-			FavoriteMusic: "",
-			MusicTastes: []string{},
-			FavoriteMovie: "",
-			MovieGenres: []string{},
-			FavoriteBook: "",
-			BookGenres: []string{},
-			FavoriteSport: "",
-			FavoriteAnimal: "",
-			Hobbies: []string{},
-			Interests: []string{},
-			Languages: []string{},
-			TravelPreferences: map[string]string{},
+			FavoriteColor:       "",
+			FavoriteColors:      []string{},
+			FavoriteFood:        "",
+			FavoriteFoods:       []string{},
+			FavoriteMusic:       "",
+			MusicTastes:         []string{},
+			FavoriteMovie:       "",
+			MovieGenres:         []string{},
+			FavoriteBook:        "",
+			BookGenres:          []string{},
+			FavoriteSport:       "",
+			FavoriteAnimal:      "",
+			Hobbies:             []string{},
+			Interests:           []string{},
+			Languages:           []string{},
+			TravelPreferences:   map[string]string{},
 			ShoppingPreferences: map[string]bool{},
 		},
 		validationFuncs: []func(*models.PersonalPreferences) error{},
@@ -45,6 +45,7 @@ func NewPersonalPreferencesBuilderWithDefaults() *PersonalPreferencesBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithFavoriteColor sets the FavoriteColor
 func (b *PersonalPreferencesBuilder) WithFavoriteColor(favoriteColor string) *PersonalPreferencesBuilder {
 	if b == nil {
@@ -204,7 +205,6 @@ func (b *PersonalPreferencesBuilder) WithShoppingPreferences(key string, val boo
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *PersonalPreferencesBuilder) WithValidation(validationFunc func(*models.PersonalPreferences) error) *PersonalPreferencesBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -270,7 +270,7 @@ func (b *PersonalPreferencesBuilder) Clone() *PersonalPreferencesBuilder {
 	// Create new builder with cloned data
 	clonedBuilder := &PersonalPreferencesBuilder{
 		personalPreferences: &clonedPersonalPreferences,
-		validationFuncs: make([]func(*models.PersonalPreferences) error, 0, len(b.validationFuncs)),
+		validationFuncs:     make([]func(*models.PersonalPreferences) error, 0, len(b.validationFuncs)),
 	}
 
 	// Copy validation functions safely

@@ -4,16 +4,16 @@ package builder
 type Builder[T any] interface {
 	// Build builds the object and returns it
 	Build() T
-	
+
 	// BuildPtr builds the object and returns a pointer to it
 	BuildPtr() *T
-	
+
 	// BuildAndValidate builds the object, validates it, and returns it along with any validation errors
 	BuildAndValidate() (*T, error)
-	
+
 	// MustBuild builds the object and panics if validation fails
 	MustBuild() *T
-	
+
 	// Clone creates a deep copy of the builder
 	Clone() Builder[T]
 }

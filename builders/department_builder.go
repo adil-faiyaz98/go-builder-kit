@@ -17,15 +17,15 @@ type DepartmentBuilder struct {
 func NewDepartmentBuilder() *DepartmentBuilder {
 	return &DepartmentBuilder{
 		department: &models.Department{
-			Name: "",
-			Code: "",
+			Name:        "",
+			Code:        "",
 			Description: "",
-			Manager: interface{}(0),
-			Employees: []interface{}{},
-			Budget: 0.0,
-			HeadCount: 0,
-			Projects: []interface{}{},
-			Location: nil,
+			Manager:     interface{}(0),
+			Employees:   []interface{}{},
+			Budget:      0.0,
+			HeadCount:   0,
+			Projects:    []interface{}{},
+			Location:    nil,
 		},
 		validationFuncs: []func(*models.Department) error{},
 	}
@@ -37,6 +37,7 @@ func NewDepartmentBuilderWithDefaults() *DepartmentBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithName sets the Name
 func (b *DepartmentBuilder) WithName(name string) *DepartmentBuilder {
 	if b == nil {
@@ -119,7 +120,6 @@ func (b *DepartmentBuilder) WithLocation(location *AddressBuilder) *DepartmentBu
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *DepartmentBuilder) WithValidation(validationFunc func(*models.Department) error) *DepartmentBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -184,7 +184,7 @@ func (b *DepartmentBuilder) Clone() *DepartmentBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &DepartmentBuilder{
-		department: &clonedDepartment,
+		department:      &clonedDepartment,
 		validationFuncs: make([]func(*models.Department) error, 0, len(b.validationFuncs)),
 	}
 

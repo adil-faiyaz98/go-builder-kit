@@ -17,14 +17,14 @@ type TaskBuilder struct {
 func NewTaskBuilder() *TaskBuilder {
 	return &TaskBuilder{
 		task: &models.Task{
-			Name: "",
+			Name:        "",
 			Description: "",
-			StartDate: "",
-			EndDate: "",
-			Status: "",
-			Priority: "",
-			Assignee: interface{}(0),
-			Subtasks: []*models.Task{},
+			StartDate:   "",
+			EndDate:     "",
+			Status:      "",
+			Priority:    "",
+			Assignee:    interface{}(0),
+			Subtasks:    []*models.Task{},
 		},
 		validationFuncs: []func(*models.Task) error{},
 	}
@@ -36,6 +36,7 @@ func NewTaskBuilderWithDefaults() *TaskBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithName sets the Name
 func (b *TaskBuilder) WithName(name string) *TaskBuilder {
 	if b == nil {
@@ -200,7 +201,7 @@ func (b *TaskBuilder) Clone() *TaskBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &TaskBuilder{
-		task: &clonedTask,
+		task:            &clonedTask,
 		validationFuncs: make([]func(*models.Task) error, 0, len(b.validationFuncs)),
 	}
 

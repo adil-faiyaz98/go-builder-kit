@@ -17,10 +17,10 @@ type PerformanceRecordBuilder struct {
 func NewPerformanceRecordBuilder() *PerformanceRecordBuilder {
 	return &PerformanceRecordBuilder{
 		performanceRecord: &models.PerformanceRecord{
-			Date: "",
+			Date:  "",
 			Value: 0.0,
 			Notes: "",
-			ROI: 0.0,
+			ROI:   0.0,
 		},
 		validationFuncs: []func(*models.PerformanceRecord) error{},
 	}
@@ -32,6 +32,7 @@ func NewPerformanceRecordBuilderWithDefaults() *PerformanceRecordBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithDate sets the Date
 func (b *PerformanceRecordBuilder) WithDate(date string) *PerformanceRecordBuilder {
 	if b == nil {
@@ -67,7 +68,6 @@ func (b *PerformanceRecordBuilder) WithROI(rOI float64) *PerformanceRecordBuilde
 	b.performanceRecord.ROI = rOI
 	return b
 }
-
 
 // WithValidation adds a custom validation function
 func (b *PerformanceRecordBuilder) WithValidation(validationFunc func(*models.PerformanceRecord) error) *PerformanceRecordBuilder {
@@ -134,7 +134,7 @@ func (b *PerformanceRecordBuilder) Clone() *PerformanceRecordBuilder {
 	// Create new builder with cloned data
 	clonedBuilder := &PerformanceRecordBuilder{
 		performanceRecord: &clonedPerformanceRecord,
-		validationFuncs: make([]func(*models.PerformanceRecord) error, 0, len(b.validationFuncs)),
+		validationFuncs:   make([]func(*models.PerformanceRecord) error, 0, len(b.validationFuncs)),
 	}
 
 	// Copy validation functions safely

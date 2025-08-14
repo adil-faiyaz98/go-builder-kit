@@ -17,14 +17,14 @@ type AddressBuilder struct {
 func NewAddressBuilder() *AddressBuilder {
 	return &AddressBuilder{
 		address: &models.Address{
-			Street: "",
-			City: "",
-			State: "",
-			PostalCode: "",
-			Country: "",
+			Street:      "",
+			City:        "",
+			State:       "",
+			PostalCode:  "",
+			Country:     "",
 			Coordinates: nil,
-			Type: "",
-			IsPrimary: false,
+			Type:        "",
+			IsPrimary:   false,
 		},
 		validationFuncs: []func(*models.Address) error{},
 	}
@@ -36,6 +36,7 @@ func NewAddressBuilderWithDefaults() *AddressBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithStreet sets the Street
 func (b *AddressBuilder) WithStreet(street string) *AddressBuilder {
 	if b == nil {
@@ -109,7 +110,6 @@ func (b *AddressBuilder) WithIsPrimary(isPrimary bool) *AddressBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *AddressBuilder) WithValidation(validationFunc func(*models.Address) error) *AddressBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -174,7 +174,7 @@ func (b *AddressBuilder) Clone() *AddressBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &AddressBuilder{
-		address: &clonedAddress,
+		address:         &clonedAddress,
 		validationFuncs: make([]func(*models.Address) error, 0, len(b.validationFuncs)),
 	}
 

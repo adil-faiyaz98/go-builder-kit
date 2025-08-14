@@ -211,7 +211,7 @@ type Person struct {
 	}
 
 	contentStr := string(content)
-	
+
 	// Check for expected content
 	expectedStrings := []string{
 		"package builders",

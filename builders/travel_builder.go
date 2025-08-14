@@ -17,14 +17,14 @@ type TravelBuilder struct {
 func NewTravelBuilder() *TravelBuilder {
 	return &TravelBuilder{
 		travel: &models.Travel{
-			Destination: models.Address{},
-			StartDate: "",
-			EndDate: "",
-			Purpose: "",
-			Accommodation: "",
+			Destination:    models.Address{},
+			StartDate:      "",
+			EndDate:        "",
+			Purpose:        "",
+			Accommodation:  "",
 			Transportation: "",
-			Activities: []string{},
-			Expenses: 0.0,
+			Activities:     []string{},
+			Expenses:       0.0,
 		},
 		validationFuncs: []func(*models.Travel) error{},
 	}
@@ -36,6 +36,7 @@ func NewTravelBuilderWithDefaults() *TravelBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithDestination sets the Destination
 func (b *TravelBuilder) WithDestination(destination *AddressBuilder) *TravelBuilder {
 	if b == nil {
@@ -109,7 +110,6 @@ func (b *TravelBuilder) WithExpenses(expenses float64) *TravelBuilder {
 	return b
 }
 
-
 // WithValidation adds a custom validation function
 func (b *TravelBuilder) WithValidation(validationFunc func(*models.Travel) error) *TravelBuilder {
 	b.validationFuncs = append(b.validationFuncs, validationFunc)
@@ -174,7 +174,7 @@ func (b *TravelBuilder) Clone() *TravelBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &TravelBuilder{
-		travel: &clonedTravel,
+		travel:          &clonedTravel,
 		validationFuncs: make([]func(*models.Travel) error, 0, len(b.validationFuncs)),
 	}
 

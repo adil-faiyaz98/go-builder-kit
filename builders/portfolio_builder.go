@@ -17,16 +17,16 @@ type PortfolioBuilder struct {
 func NewPortfolioBuilder() *PortfolioBuilder {
 	return &PortfolioBuilder{
 		portfolio: &models.Portfolio{
-			ID: "",
-			Name: "",
-			Description: "",
-			RiskLevel: "",
-			TotalValue: 0.0,
-			Allocation: map[string]float64{},
-			Stocks: []any{},
-			Bonds: []*models.Bond{},
-			ETFs: []any{},
-			MutualFunds: []any{},
+			ID:               "",
+			Name:             "",
+			Description:      "",
+			RiskLevel:        "",
+			TotalValue:       0.0,
+			Allocation:       map[string]float64{},
+			Stocks:           []any{},
+			Bonds:            []*models.Bond{},
+			ETFs:             []any{},
+			MutualFunds:      []any{},
 			Cryptocurrencies: []any{},
 		},
 		validationFuncs: []func(*models.Portfolio) error{},
@@ -39,6 +39,7 @@ func NewPortfolioBuilderWithDefaults() *PortfolioBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *PortfolioBuilder) WithID(id string) *PortfolioBuilder {
 	if b == nil {
@@ -233,7 +234,7 @@ func (b *PortfolioBuilder) Clone() *PortfolioBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &PortfolioBuilder{
-		portfolio: &clonedPortfolio,
+		portfolio:       &clonedPortfolio,
 		validationFuncs: make([]func(*models.Portfolio) error, 0, len(b.validationFuncs)),
 	}
 

@@ -17,28 +17,28 @@ type PersonBuilder struct {
 func NewPersonBuilder() *PersonBuilder {
 	return &PersonBuilder{
 		person: &models.Person{
-			ID: "",
-			Name: "",
-			Age: 0,
-			Email: "",
-			Phone: "",
-			Birthdate: "",
-			Gender: "",
-			Nationality: "",
+			ID:            "",
+			Name:          "",
+			Age:           0,
+			Email:         "",
+			Phone:         "",
+			Birthdate:     "",
+			Gender:        "",
+			Nationality:   "",
 			MaritalStatus: "",
-			Address: nil,
-			Education: nil,
-			Profile: interface{}(0),
-			Bank: nil,
-			Employment: nil,
-			Friends: []*models.Person{},
-			Family: []*models.FamilyMember{},
-			Health: interface{}(0),
-			Digital: interface{}(0),
+			Address:       nil,
+			Education:     nil,
+			Profile:       interface{}(0),
+			Bank:          nil,
+			Employment:    nil,
+			Friends:       []*models.Person{},
+			Family:        []*models.FamilyMember{},
+			Health:        interface{}(0),
+			Digital:       interface{}(0),
 			TravelHistory: []*models.Travel{},
-			Preferences: nil,
-			CreatedAt: "",
-			UpdatedAt: "",
+			Preferences:   nil,
+			CreatedAt:     "",
+			UpdatedAt:     "",
 		},
 		validationFuncs: []func(*models.Person) error{},
 	}
@@ -50,6 +50,7 @@ func NewPersonBuilderWithDefaults() *PersonBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *PersonBuilder) WithID(id string) *PersonBuilder {
 	if b == nil {
@@ -302,6 +303,7 @@ func (b *PersonBuilder) AddFriend(friend *PersonBuilder) *PersonBuilder {
 	}
 	return b
 }
+
 // AddFamily adds a single item to the Family slice
 func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	if b == nil {
@@ -318,6 +320,7 @@ func (b *PersonBuilder) AddFamily(family *FamilyMemberBuilder) *PersonBuilder {
 	}
 	return b
 }
+
 // AddTravelHistory adds a single item to the TravelHistory slice
 func (b *PersonBuilder) AddTravelHistory(travelHistory *TravelBuilder) *PersonBuilder {
 	if b == nil {
@@ -399,7 +402,7 @@ func (b *PersonBuilder) Clone() *PersonBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &PersonBuilder{
-		person: &clonedPerson,
+		person:          &clonedPerson,
 		validationFuncs: make([]func(*models.Person) error, 0, len(b.validationFuncs)),
 	}
 

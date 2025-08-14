@@ -17,7 +17,7 @@ type FamilyMemberBuilder struct {
 func NewFamilyMemberBuilder() *FamilyMemberBuilder {
 	return &FamilyMemberBuilder{
 		familyMember: &models.FamilyMember{
-			Person: nil,
+			Person:       nil,
 			Relationship: "",
 		},
 		validationFuncs: []func(*models.FamilyMember) error{},
@@ -30,6 +30,7 @@ func NewFamilyMemberBuilderWithDefaults() *FamilyMemberBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithPerson sets the Person
 func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBuilder {
 	if b == nil {
@@ -48,7 +49,6 @@ func (b *FamilyMemberBuilder) WithRelationship(relationship string) *FamilyMembe
 	b.familyMember.Relationship = builder.SanitizeString(relationship)
 	return b
 }
-
 
 // WithValidation adds a custom validation function
 func (b *FamilyMemberBuilder) WithValidation(validationFunc func(*models.FamilyMember) error) *FamilyMemberBuilder {
@@ -114,7 +114,7 @@ func (b *FamilyMemberBuilder) Clone() *FamilyMemberBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &FamilyMemberBuilder{
-		familyMember: &clonedFamilyMember,
+		familyMember:    &clonedFamilyMember,
 		validationFuncs: make([]func(*models.FamilyMember) error, 0, len(b.validationFuncs)),
 	}
 

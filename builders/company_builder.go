@@ -17,17 +17,17 @@ type CompanyBuilder struct {
 func NewCompanyBuilder() *CompanyBuilder {
 	return &CompanyBuilder{
 		company: &models.Company{
-			ID: "",
-			Name: "",
-			Industry: "",
+			ID:          "",
+			Name:        "",
+			Industry:    "",
 			Description: "",
-			Founded: "",
-			Website: "",
-			Address: nil,
-			Location: nil,
-			Size: "",
-			Revenue: "",
-			Public: false,
+			Founded:     "",
+			Website:     "",
+			Address:     nil,
+			Location:    nil,
+			Size:        "",
+			Revenue:     "",
+			Public:      false,
 			StockSymbol: "",
 			Departments: []*models.Department{},
 		},
@@ -41,6 +41,7 @@ func NewCompanyBuilderWithDefaults() *CompanyBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithID sets the ID
 func (b *CompanyBuilder) WithID(id string) *CompanyBuilder {
 	if b == nil {
@@ -252,7 +253,7 @@ func (b *CompanyBuilder) Clone() *CompanyBuilder {
 
 	// Create new builder with cloned data
 	clonedBuilder := &CompanyBuilder{
-		company: &clonedCompany,
+		company:         &clonedCompany,
 		validationFuncs: make([]func(*models.Company) error, 0, len(b.validationFuncs)),
 	}
 

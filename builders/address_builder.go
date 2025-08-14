@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // AddressBuilder builds a Address model
@@ -37,36 +38,54 @@ func NewAddressBuilderWithDefaults() *AddressBuilder {
 }
 // WithStreet sets the Street
 func (b *AddressBuilder) WithStreet(street string) *AddressBuilder {
-	b.address.Street = street
+	if b == nil {
+		return b
+	}
+	b.address.Street = builder.SanitizeString(street)
 	return b
 }
 
 // WithCity sets the City
 func (b *AddressBuilder) WithCity(city string) *AddressBuilder {
-	b.address.City = city
+	if b == nil {
+		return b
+	}
+	b.address.City = builder.SanitizeString(city)
 	return b
 }
 
 // WithState sets the State
 func (b *AddressBuilder) WithState(state string) *AddressBuilder {
-	b.address.State = state
+	if b == nil {
+		return b
+	}
+	b.address.State = builder.SanitizeString(state)
 	return b
 }
 
 // WithPostalCode sets the PostalCode
 func (b *AddressBuilder) WithPostalCode(postalCode string) *AddressBuilder {
-	b.address.PostalCode = postalCode
+	if b == nil {
+		return b
+	}
+	b.address.PostalCode = builder.SanitizeString(postalCode)
 	return b
 }
 
 // WithCountry sets the Country
 func (b *AddressBuilder) WithCountry(country string) *AddressBuilder {
-	b.address.Country = country
+	if b == nil {
+		return b
+	}
+	b.address.Country = builder.SanitizeString(country)
 	return b
 }
 
 // WithCoordinates sets the Coordinates
 func (b *AddressBuilder) WithCoordinates(coordinates *GeoLocationBuilder) *AddressBuilder {
+	if b == nil {
+		return b
+	}
 	// Handle nested pointer
 	b.address.Coordinates = coordinates.BuildPtr()
 	return b
@@ -74,12 +93,18 @@ func (b *AddressBuilder) WithCoordinates(coordinates *GeoLocationBuilder) *Addre
 
 // WithType sets the Type
 func (b *AddressBuilder) WithType(value string) *AddressBuilder {
-	b.address.Type = value
+	if b == nil {
+		return b
+	}
+	b.address.Type = builder.SanitizeString(value)
 	return b
 }
 
 // WithIsPrimary sets the IsPrimary
 func (b *AddressBuilder) WithIsPrimary(isPrimary bool) *AddressBuilder {
+	if b == nil {
+		return b
+	}
 	b.address.IsPrimary = isPrimary
 	return b
 }
@@ -103,19 +128,26 @@ func (b *AddressBuilder) BuildPtr() *models.Address {
 
 // BuildAndValidate builds the Address and validates it
 func (b *AddressBuilder) BuildAndValidate() (*models.Address, error) {
+	if b == nil || b.address == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	address := b.address
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(address); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(address).(interface{ Validate() error }); ok {
+	if v, ok := any(address).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return address, err
+			return address, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -133,9 +165,23 @@ func (b *AddressBuilder) MustBuild() *models.Address {
 
 // Clone creates a deep copy of the builder
 func (b *AddressBuilder) Clone() *AddressBuilder {
-	clonedAddress := *b.address
-	return &AddressBuilder{
-		address: &clonedAddress,
-		validationFuncs: append([]func(*models.Address) error{}, b.validationFuncs...),
+	if b == nil || b.address == nil {
+		return NewAddressBuilder()
 	}
+
+	// Deep copy the struct
+	clonedAddress := *b.address
+
+	// Create new builder with cloned data
+	clonedBuilder := &AddressBuilder{
+		address: &clonedAddress,
+		validationFuncs: make([]func(*models.Address) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

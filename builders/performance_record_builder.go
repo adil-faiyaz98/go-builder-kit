@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // PerformanceRecordBuilder builds a PerformanceRecord model
@@ -33,24 +34,36 @@ func NewPerformanceRecordBuilderWithDefaults() *PerformanceRecordBuilder {
 }
 // WithDate sets the Date
 func (b *PerformanceRecordBuilder) WithDate(date string) *PerformanceRecordBuilder {
-	b.performanceRecord.Date = date
+	if b == nil {
+		return b
+	}
+	b.performanceRecord.Date = builder.SanitizeString(date)
 	return b
 }
 
 // WithValue sets the Value
 func (b *PerformanceRecordBuilder) WithValue(value float64) *PerformanceRecordBuilder {
+	if b == nil {
+		return b
+	}
 	b.performanceRecord.Value = value
 	return b
 }
 
 // WithNotes sets the Notes
 func (b *PerformanceRecordBuilder) WithNotes(notes string) *PerformanceRecordBuilder {
-	b.performanceRecord.Notes = notes
+	if b == nil {
+		return b
+	}
+	b.performanceRecord.Notes = builder.SanitizeString(notes)
 	return b
 }
 
 // WithROI sets the ROI
 func (b *PerformanceRecordBuilder) WithROI(rOI float64) *PerformanceRecordBuilder {
+	if b == nil {
+		return b
+	}
 	b.performanceRecord.ROI = rOI
 	return b
 }
@@ -74,19 +87,26 @@ func (b *PerformanceRecordBuilder) BuildPtr() *models.PerformanceRecord {
 
 // BuildAndValidate builds the PerformanceRecord and validates it
 func (b *PerformanceRecordBuilder) BuildAndValidate() (*models.PerformanceRecord, error) {
+	if b == nil || b.performanceRecord == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	performanceRecord := b.performanceRecord
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(performanceRecord); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(performanceRecord).(interface{ Validate() error }); ok {
+	if v, ok := any(performanceRecord).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return performanceRecord, err
+			return performanceRecord, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -104,9 +124,23 @@ func (b *PerformanceRecordBuilder) MustBuild() *models.PerformanceRecord {
 
 // Clone creates a deep copy of the builder
 func (b *PerformanceRecordBuilder) Clone() *PerformanceRecordBuilder {
-	clonedPerformanceRecord := *b.performanceRecord
-	return &PerformanceRecordBuilder{
-		performanceRecord: &clonedPerformanceRecord,
-		validationFuncs: append([]func(*models.PerformanceRecord) error{}, b.validationFuncs...),
+	if b == nil || b.performanceRecord == nil {
+		return NewPerformanceRecordBuilder()
 	}
+
+	// Deep copy the struct
+	clonedPerformanceRecord := *b.performanceRecord
+
+	// Create new builder with cloned data
+	clonedBuilder := &PerformanceRecordBuilder{
+		performanceRecord: &clonedPerformanceRecord,
+		validationFuncs: make([]func(*models.PerformanceRecord) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

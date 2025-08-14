@@ -3,7 +3,8 @@ package builders
 import (
 	"fmt"
 
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // EmploymentBuilder builds a Employment model
@@ -24,8 +25,8 @@ func NewEmploymentBuilder() *EmploymentBuilder {
 			EndDate:      "",
 			Salary:       0.0,
 			IsCurrent:    false,
-			Supervisor:   interface{}(nil),
-			Subordinates: []interface{}{},
+			Supervisor:   nil,
+			Subordinates: []any{},
 		},
 		validationFuncs: []func(*models.Employment) error{},
 	}
@@ -40,6 +41,9 @@ func NewEmploymentBuilderWithDefaults() *EmploymentBuilder {
 
 // WithCompany sets the Company
 func (b *EmploymentBuilder) WithCompany(company *CompanyBuilder) *EmploymentBuilder {
+	if b == nil {
+		return b
+	}
 	// Handle nested pointer
 	b.employment.Company = company.BuildPtr()
 	return b
@@ -47,48 +51,72 @@ func (b *EmploymentBuilder) WithCompany(company *CompanyBuilder) *EmploymentBuil
 
 // WithPosition sets the Position
 func (b *EmploymentBuilder) WithPosition(position string) *EmploymentBuilder {
-	b.employment.Position = position
+	if b == nil {
+		return b
+	}
+	b.employment.Position = builder.SanitizeString(position)
 	return b
 }
 
 // WithDepartment sets the Department
 func (b *EmploymentBuilder) WithDepartment(department string) *EmploymentBuilder {
-	b.employment.Department = department
+	if b == nil {
+		return b
+	}
+	b.employment.Department = builder.SanitizeString(department)
 	return b
 }
 
 // WithStartDate sets the StartDate
 func (b *EmploymentBuilder) WithStartDate(startDate string) *EmploymentBuilder {
-	b.employment.StartDate = startDate
+	if b == nil {
+		return b
+	}
+	b.employment.StartDate = builder.SanitizeString(startDate)
 	return b
 }
 
 // WithEndDate sets the EndDate
 func (b *EmploymentBuilder) WithEndDate(endDate string) *EmploymentBuilder {
-	b.employment.EndDate = endDate
+	if b == nil {
+		return b
+	}
+	b.employment.EndDate = builder.SanitizeString(endDate)
 	return b
 }
 
 // WithSalary sets the Salary
 func (b *EmploymentBuilder) WithSalary(salary float64) *EmploymentBuilder {
+	if b == nil {
+		return b
+	}
 	b.employment.Salary = salary
 	return b
 }
 
 // WithIsCurrent sets the IsCurrent
 func (b *EmploymentBuilder) WithIsCurrent(isCurrent bool) *EmploymentBuilder {
+	if b == nil {
+		return b
+	}
 	b.employment.IsCurrent = isCurrent
 	return b
 }
 
 // WithSupervisor sets the Supervisor
 func (b *EmploymentBuilder) WithSupervisor(supervisor any) *EmploymentBuilder {
+	if b == nil {
+		return b
+	}
 	b.employment.Supervisor = supervisor
 	return b
 }
 
 // WithSubordinates sets the Subordinates
 func (b *EmploymentBuilder) WithSubordinates(subordinates []any) *EmploymentBuilder {
+	if b == nil {
+		return b
+	}
 	b.employment.Subordinates = append(b.employment.Subordinates, subordinates...)
 	return b
 }
@@ -111,19 +139,26 @@ func (b *EmploymentBuilder) BuildPtr() *models.Employment {
 
 // BuildAndValidate builds the Employment and validates it
 func (b *EmploymentBuilder) BuildAndValidate() (*models.Employment, error) {
+	if b == nil || b.employment == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	employment := b.employment
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(employment); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(employment).(interface{ Validate() error }); ok {
+	if v, ok := any(employment).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return employment, err
+			return employment, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -141,9 +176,23 @@ func (b *EmploymentBuilder) MustBuild() *models.Employment {
 
 // Clone creates a deep copy of the builder
 func (b *EmploymentBuilder) Clone() *EmploymentBuilder {
-	clonedEmployment := *b.employment
-	return &EmploymentBuilder{
-		employment:      &clonedEmployment,
-		validationFuncs: append([]func(*models.Employment) error{}, b.validationFuncs...),
+	if b == nil || b.employment == nil {
+		return NewEmploymentBuilder()
 	}
+
+	// Deep copy the struct
+	clonedEmployment := *b.employment
+
+	// Create new builder with cloned data
+	clonedBuilder := &EmploymentBuilder{
+		employment:      &clonedEmployment,
+		validationFuncs: make([]func(*models.Employment) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

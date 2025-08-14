@@ -75,7 +75,7 @@ Go Builder Kit v3.0 has been completely rewritten with security as the top prior
 Install the library using `go get`:
 
 ```bash
-go get github.com/adil-faiyaz98/go-builder-kit
+go get github.com/adil-faiyaz98/go-builder-kit/v2
 ```
 
 ## Quick Start
@@ -86,7 +86,7 @@ Use the builder generator to create builders for your structs:
 
 ```bash
 # Install the builder generator
-go install github.com/adil-faiyaz98/go-builder-kit/cmd/builder-gen@latest
+go install github.com/adil-faiyaz98/go-builder-kit/v2/cmd/builder-gen@latest
 
 # Generate builders for your models
 builder-gen -input path/to/models -output path/to/builders -models-package github.com/yourusername/yourproject/models
@@ -170,7 +170,7 @@ Go Builder Kit v3.0 includes significant performance improvements:
 Go Builder Kit provides comprehensive validation with built-in security features:
 
 ```go
-import "github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
+import "github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 
 // Built-in validation utilities
 var errors builder.ValidationErrors
@@ -222,7 +222,7 @@ fmt.Printf("Secure person created: %s\n", person.Name)
 The improved builder registry provides type-safe builder management:
 
 ```go
-import "github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
+import "github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 
 // Register builders with the global registry
 builder.Register("person", func() any {
@@ -455,7 +455,7 @@ go test ./... -v -cover
 go vet ./...
 
 # Generate builders for examples
-./builder-gen.exe -input models -output builders -models-package github.com/adil-faiyaz98/go-builder-kit/models
+./builder-gen.exe -input models -output builders -models-package github.com/adil-faiyaz98/go-builder-kit/v2/models
 ```
 
 ### Code Quality Standards
@@ -514,7 +514,7 @@ Benchmark Results (vs v1.x):
 
 ## Support & Community
 
-- **Documentation**: [Full API Documentation](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit)
+- **Documentation**: [Full API Documentation](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit/v2)
 - **Issues**: [GitHub Issues](https://github.com/adil-faiyaz98/go-builder-kit/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/adil-faiyaz98/go-builder-kit/discussions)
 - **Security**: [Security Policy](https://github.com/adil-faiyaz98/go-builder-kit/security/policy)

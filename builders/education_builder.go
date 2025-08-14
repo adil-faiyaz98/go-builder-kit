@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // EducationBuilder builds a Education model
@@ -40,18 +41,27 @@ func NewEducationBuilderWithDefaults() *EducationBuilder {
 }
 // WithDegree sets the Degree
 func (b *EducationBuilder) WithDegree(degree string) *EducationBuilder {
-	b.education.Degree = degree
+	if b == nil {
+		return b
+	}
+	b.education.Degree = builder.SanitizeString(degree)
 	return b
 }
 
 // WithInstitution sets the Institution
 func (b *EducationBuilder) WithInstitution(institution string) *EducationBuilder {
-	b.education.Institution = institution
+	if b == nil {
+		return b
+	}
+	b.education.Institution = builder.SanitizeString(institution)
 	return b
 }
 
 // WithLocation sets the Location
 func (b *EducationBuilder) WithLocation(location *AddressBuilder) *EducationBuilder {
+	if b == nil {
+		return b
+	}
 	// Handle nested pointer
 	b.education.Location = location.BuildPtr()
 	return b
@@ -59,42 +69,63 @@ func (b *EducationBuilder) WithLocation(location *AddressBuilder) *EducationBuil
 
 // WithStartDate sets the StartDate
 func (b *EducationBuilder) WithStartDate(startDate string) *EducationBuilder {
-	b.education.StartDate = startDate
+	if b == nil {
+		return b
+	}
+	b.education.StartDate = builder.SanitizeString(startDate)
 	return b
 }
 
 // WithEndDate sets the EndDate
 func (b *EducationBuilder) WithEndDate(endDate string) *EducationBuilder {
-	b.education.EndDate = endDate
+	if b == nil {
+		return b
+	}
+	b.education.EndDate = builder.SanitizeString(endDate)
 	return b
 }
 
 // WithGPA sets the GPA
 func (b *EducationBuilder) WithGPA(gPA float64) *EducationBuilder {
+	if b == nil {
+		return b
+	}
 	b.education.GPA = gPA
 	return b
 }
 
 // WithHonors sets the Honors
 func (b *EducationBuilder) WithHonors(honors []string) *EducationBuilder {
+	if b == nil {
+		return b
+	}
 	b.education.Honors = append(b.education.Honors, honors...)
 	return b
 }
 
 // WithMajor sets the Major
 func (b *EducationBuilder) WithMajor(major string) *EducationBuilder {
-	b.education.Major = major
+	if b == nil {
+		return b
+	}
+	b.education.Major = builder.SanitizeString(major)
 	return b
 }
 
 // WithMinor sets the Minor
 func (b *EducationBuilder) WithMinor(minor string) *EducationBuilder {
-	b.education.Minor = minor
+	if b == nil {
+		return b
+	}
+	b.education.Minor = builder.SanitizeString(minor)
 	return b
 }
 
 // WithCourses sets the Courses
 func (b *EducationBuilder) WithCourses(courses []*CourseBuilder) *EducationBuilder {
+	if b == nil {
+		return b
+	}
 	// Ensure the slice is initialized
 	if b.education.Courses == nil {
 		b.education.Courses = []*models.Course{}
@@ -112,19 +143,27 @@ func (b *EducationBuilder) WithCourses(courses []*CourseBuilder) *EducationBuild
 
 // WithActivities sets the Activities
 func (b *EducationBuilder) WithActivities(activities []string) *EducationBuilder {
+	if b == nil {
+		return b
+	}
 	b.education.Activities = append(b.education.Activities, activities...)
 	return b
 }
 
 // AddCours adds a single item to the Courses slice
 func (b *EducationBuilder) AddCours(cours *CourseBuilder) *EducationBuilder {
-	// Ensure the slice is initialized
+	if b == nil {
+		return b
+	}
+	// Ensure the slice is initialized with capacity
 	if b.education.Courses == nil {
-		b.education.Courses = []*models.Course{}
+		b.education.Courses = make([]*models.Course, 0, 4) // Pre-allocate capacity
 	}
 	// Handle nested slice element
-	builtValue := cours.Build().(*models.Course)
-	b.education.Courses = append(b.education.Courses, builtValue)
+	if cours != nil {
+		builtValue := cours.Build().(*models.Course)
+		b.education.Courses = append(b.education.Courses, builtValue)
+	}
 	return b
 }
 
@@ -146,19 +185,26 @@ func (b *EducationBuilder) BuildPtr() *models.Education {
 
 // BuildAndValidate builds the Education and validates it
 func (b *EducationBuilder) BuildAndValidate() (*models.Education, error) {
+	if b == nil || b.education == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	education := b.education
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(education); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(education).(interface{ Validate() error }); ok {
+	if v, ok := any(education).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return education, err
+			return education, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -176,9 +222,23 @@ func (b *EducationBuilder) MustBuild() *models.Education {
 
 // Clone creates a deep copy of the builder
 func (b *EducationBuilder) Clone() *EducationBuilder {
-	clonedEducation := *b.education
-	return &EducationBuilder{
-		education: &clonedEducation,
-		validationFuncs: append([]func(*models.Education) error{}, b.validationFuncs...),
+	if b == nil || b.education == nil {
+		return NewEducationBuilder()
 	}
+
+	// Deep copy the struct
+	clonedEducation := *b.education
+
+	// Create new builder with cloned data
+	clonedBuilder := &EducationBuilder{
+		education: &clonedEducation,
+		validationFuncs: make([]func(*models.Education) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

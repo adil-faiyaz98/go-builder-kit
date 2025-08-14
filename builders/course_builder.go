@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // CourseBuilder builds a Course model
@@ -37,49 +38,73 @@ func NewCourseBuilderWithDefaults() *CourseBuilder {
 }
 // WithCode sets the Code
 func (b *CourseBuilder) WithCode(code string) *CourseBuilder {
-	b.course.Code = code
+	if b == nil {
+		return b
+	}
+	b.course.Code = builder.SanitizeString(code)
 	return b
 }
 
 // WithName sets the Name
 func (b *CourseBuilder) WithName(name string) *CourseBuilder {
-	b.course.Name = name
+	if b == nil {
+		return b
+	}
+	b.course.Name = builder.SanitizeString(name)
 	return b
 }
 
 // WithDescription sets the Description
 func (b *CourseBuilder) WithDescription(description string) *CourseBuilder {
-	b.course.Description = description
+	if b == nil {
+		return b
+	}
+	b.course.Description = builder.SanitizeString(description)
 	return b
 }
 
 // WithCredits sets the Credits
 func (b *CourseBuilder) WithCredits(credits float64) *CourseBuilder {
+	if b == nil {
+		return b
+	}
 	b.course.Credits = credits
 	return b
 }
 
 // WithGrade sets the Grade
 func (b *CourseBuilder) WithGrade(grade string) *CourseBuilder {
-	b.course.Grade = grade
+	if b == nil {
+		return b
+	}
+	b.course.Grade = builder.SanitizeString(grade)
 	return b
 }
 
 // WithSemester sets the Semester
 func (b *CourseBuilder) WithSemester(semester string) *CourseBuilder {
-	b.course.Semester = semester
+	if b == nil {
+		return b
+	}
+	b.course.Semester = builder.SanitizeString(semester)
 	return b
 }
 
 // WithYear sets the Year
 func (b *CourseBuilder) WithYear(year int) *CourseBuilder {
+	if b == nil {
+		return b
+	}
 	b.course.Year = year
 	return b
 }
 
 // WithInstructor sets the Instructor
 func (b *CourseBuilder) WithInstructor(instructor string) *CourseBuilder {
-	b.course.Instructor = instructor
+	if b == nil {
+		return b
+	}
+	b.course.Instructor = builder.SanitizeString(instructor)
 	return b
 }
 
@@ -102,19 +127,26 @@ func (b *CourseBuilder) BuildPtr() *models.Course {
 
 // BuildAndValidate builds the Course and validates it
 func (b *CourseBuilder) BuildAndValidate() (*models.Course, error) {
+	if b == nil || b.course == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	course := b.course
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(course); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(course).(interface{ Validate() error }); ok {
+	if v, ok := any(course).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return course, err
+			return course, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -132,9 +164,23 @@ func (b *CourseBuilder) MustBuild() *models.Course {
 
 // Clone creates a deep copy of the builder
 func (b *CourseBuilder) Clone() *CourseBuilder {
-	clonedCourse := *b.course
-	return &CourseBuilder{
-		course: &clonedCourse,
-		validationFuncs: append([]func(*models.Course) error{}, b.validationFuncs...),
+	if b == nil || b.course == nil {
+		return NewCourseBuilder()
 	}
+
+	// Deep copy the struct
+	clonedCourse := *b.course
+
+	// Create new builder with cloned data
+	clonedBuilder := &CourseBuilder{
+		course: &clonedCourse,
+		validationFuncs: make([]func(*models.Course) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

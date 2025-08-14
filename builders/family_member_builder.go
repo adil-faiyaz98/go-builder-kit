@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // FamilyMemberBuilder builds a FamilyMember model
@@ -31,6 +32,9 @@ func NewFamilyMemberBuilderWithDefaults() *FamilyMemberBuilder {
 }
 // WithPerson sets the Person
 func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBuilder {
+	if b == nil {
+		return b
+	}
 	// Handle nested pointer
 	b.familyMember.Person = person.BuildPtr()
 	return b
@@ -38,7 +42,10 @@ func (b *FamilyMemberBuilder) WithPerson(person *PersonBuilder) *FamilyMemberBui
 
 // WithRelationship sets the Relationship
 func (b *FamilyMemberBuilder) WithRelationship(relationship string) *FamilyMemberBuilder {
-	b.familyMember.Relationship = relationship
+	if b == nil {
+		return b
+	}
+	b.familyMember.Relationship = builder.SanitizeString(relationship)
 	return b
 }
 
@@ -61,19 +68,26 @@ func (b *FamilyMemberBuilder) BuildPtr() *models.FamilyMember {
 
 // BuildAndValidate builds the FamilyMember and validates it
 func (b *FamilyMemberBuilder) BuildAndValidate() (*models.FamilyMember, error) {
+	if b == nil || b.familyMember == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	familyMember := b.familyMember
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(familyMember); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(familyMember).(interface{ Validate() error }); ok {
+	if v, ok := any(familyMember).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return familyMember, err
+			return familyMember, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -91,9 +105,23 @@ func (b *FamilyMemberBuilder) MustBuild() *models.FamilyMember {
 
 // Clone creates a deep copy of the builder
 func (b *FamilyMemberBuilder) Clone() *FamilyMemberBuilder {
-	clonedFamilyMember := *b.familyMember
-	return &FamilyMemberBuilder{
-		familyMember: &clonedFamilyMember,
-		validationFuncs: append([]func(*models.FamilyMember) error{}, b.validationFuncs...),
+	if b == nil || b.familyMember == nil {
+		return NewFamilyMemberBuilder()
 	}
+
+	// Deep copy the struct
+	clonedFamilyMember := *b.familyMember
+
+	// Create new builder with cloned data
+	clonedBuilder := &FamilyMemberBuilder{
+		familyMember: &clonedFamilyMember,
+		validationFuncs: make([]func(*models.FamilyMember) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // TravelBuilder builds a Travel model
@@ -37,6 +38,9 @@ func NewTravelBuilderWithDefaults() *TravelBuilder {
 }
 // WithDestination sets the Destination
 func (b *TravelBuilder) WithDestination(destination *AddressBuilder) *TravelBuilder {
+	if b == nil {
+		return b
+	}
 	builtValue := destination.Build().(*models.Address)
 	b.travel.Destination = *builtValue
 	return b
@@ -44,42 +48,63 @@ func (b *TravelBuilder) WithDestination(destination *AddressBuilder) *TravelBuil
 
 // WithStartDate sets the StartDate
 func (b *TravelBuilder) WithStartDate(startDate string) *TravelBuilder {
-	b.travel.StartDate = startDate
+	if b == nil {
+		return b
+	}
+	b.travel.StartDate = builder.SanitizeString(startDate)
 	return b
 }
 
 // WithEndDate sets the EndDate
 func (b *TravelBuilder) WithEndDate(endDate string) *TravelBuilder {
-	b.travel.EndDate = endDate
+	if b == nil {
+		return b
+	}
+	b.travel.EndDate = builder.SanitizeString(endDate)
 	return b
 }
 
 // WithPurpose sets the Purpose
 func (b *TravelBuilder) WithPurpose(purpose string) *TravelBuilder {
-	b.travel.Purpose = purpose
+	if b == nil {
+		return b
+	}
+	b.travel.Purpose = builder.SanitizeString(purpose)
 	return b
 }
 
 // WithAccommodation sets the Accommodation
 func (b *TravelBuilder) WithAccommodation(accommodation string) *TravelBuilder {
-	b.travel.Accommodation = accommodation
+	if b == nil {
+		return b
+	}
+	b.travel.Accommodation = builder.SanitizeString(accommodation)
 	return b
 }
 
 // WithTransportation sets the Transportation
 func (b *TravelBuilder) WithTransportation(transportation string) *TravelBuilder {
-	b.travel.Transportation = transportation
+	if b == nil {
+		return b
+	}
+	b.travel.Transportation = builder.SanitizeString(transportation)
 	return b
 }
 
 // WithActivities sets the Activities
 func (b *TravelBuilder) WithActivities(activities []string) *TravelBuilder {
+	if b == nil {
+		return b
+	}
 	b.travel.Activities = append(b.travel.Activities, activities...)
 	return b
 }
 
 // WithExpenses sets the Expenses
 func (b *TravelBuilder) WithExpenses(expenses float64) *TravelBuilder {
+	if b == nil {
+		return b
+	}
 	b.travel.Expenses = expenses
 	return b
 }
@@ -103,19 +128,26 @@ func (b *TravelBuilder) BuildPtr() *models.Travel {
 
 // BuildAndValidate builds the Travel and validates it
 func (b *TravelBuilder) BuildAndValidate() (*models.Travel, error) {
+	if b == nil || b.travel == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	travel := b.travel
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(travel); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(travel).(interface{ Validate() error }); ok {
+	if v, ok := any(travel).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return travel, err
+			return travel, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -133,9 +165,23 @@ func (b *TravelBuilder) MustBuild() *models.Travel {
 
 // Clone creates a deep copy of the builder
 func (b *TravelBuilder) Clone() *TravelBuilder {
-	clonedTravel := *b.travel
-	return &TravelBuilder{
-		travel: &clonedTravel,
-		validationFuncs: append([]func(*models.Travel) error{}, b.validationFuncs...),
+	if b == nil || b.travel == nil {
+		return NewTravelBuilder()
 	}
+
+	// Deep copy the struct
+	clonedTravel := *b.travel
+
+	// Create new builder with cloned data
+	clonedBuilder := &TravelBuilder{
+		travel: &clonedTravel,
+		validationFuncs: make([]func(*models.Travel) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

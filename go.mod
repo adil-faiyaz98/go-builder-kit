@@ -1,10 +1,11 @@
-module github.com/adil-faiyaz98/go-builder-kit
+module github.com/adil-faiyaz98/go-builder-kit/v2
 
 go 1.23.0
 
 toolchain go1.24.0
 
 require (
+	github.com/adil-faiyaz98/go-builder-kit v1.9.2
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.38.0
 )

@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
 )
 
 // GeoLocationBuilder builds a GeoLocation model
@@ -16,9 +17,9 @@ type GeoLocationBuilder struct {
 func NewGeoLocationBuilder() *GeoLocationBuilder {
 	return &GeoLocationBuilder{
 		geoLocation: &models.GeoLocation{
-			Latitude: 0.0,
+			Latitude:  0.0,
 			Longitude: 0.0,
-			Accuracy: 0.0,
+			Accuracy:  0.0,
 		},
 		validationFuncs: []func(*models.GeoLocation) error{},
 	}
@@ -30,24 +31,33 @@ func NewGeoLocationBuilderWithDefaults() *GeoLocationBuilder {
 	// Add default values here if needed
 	return builder
 }
+
 // WithLatitude sets the Latitude
 func (b *GeoLocationBuilder) WithLatitude(latitude float64) *GeoLocationBuilder {
+	if b == nil {
+		return b
+	}
 	b.geoLocation.Latitude = latitude
 	return b
 }
 
 // WithLongitude sets the Longitude
 func (b *GeoLocationBuilder) WithLongitude(longitude float64) *GeoLocationBuilder {
+	if b == nil {
+		return b
+	}
 	b.geoLocation.Longitude = longitude
 	return b
 }
 
 // WithAccuracy sets the Accuracy
 func (b *GeoLocationBuilder) WithAccuracy(accuracy float64) *GeoLocationBuilder {
+	if b == nil {
+		return b
+	}
 	b.geoLocation.Accuracy = accuracy
 	return b
 }
-
 
 // WithValidation adds a custom validation function
 func (b *GeoLocationBuilder) WithValidation(validationFunc func(*models.GeoLocation) error) *GeoLocationBuilder {
@@ -67,19 +77,26 @@ func (b *GeoLocationBuilder) BuildPtr() *models.GeoLocation {
 
 // BuildAndValidate builds the GeoLocation and validates it
 func (b *GeoLocationBuilder) BuildAndValidate() (*models.GeoLocation, error) {
+	if b == nil || b.geoLocation == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	geoLocation := b.geoLocation
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(geoLocation); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(geoLocation).(interface{ Validate() error }); ok {
+	if v, ok := any(geoLocation).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return geoLocation, err
+			return geoLocation, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -97,9 +114,23 @@ func (b *GeoLocationBuilder) MustBuild() *models.GeoLocation {
 
 // Clone creates a deep copy of the builder
 func (b *GeoLocationBuilder) Clone() *GeoLocationBuilder {
-	clonedGeoLocation := *b.geoLocation
-	return &GeoLocationBuilder{
-		geoLocation: &clonedGeoLocation,
-		validationFuncs: append([]func(*models.GeoLocation) error{}, b.validationFuncs...),
+	if b == nil || b.geoLocation == nil {
+		return NewGeoLocationBuilder()
 	}
+
+	// Deep copy the struct
+	clonedGeoLocation := *b.geoLocation
+
+	// Create new builder with cloned data
+	clonedBuilder := &GeoLocationBuilder{
+		geoLocation:     &clonedGeoLocation,
+		validationFuncs: make([]func(*models.GeoLocation) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

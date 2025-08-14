@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // AccountBuilder builds a Account model
@@ -41,72 +42,108 @@ func NewAccountBuilderWithDefaults() *AccountBuilder {
 }
 // WithID sets the ID
 func (b *AccountBuilder) WithID(id string) *AccountBuilder {
-	b.account.ID = id
+	if b == nil {
+		return b
+	}
+	b.account.ID = builder.SanitizeString(id)
 	return b
 }
 
 // WithType sets the Type
 func (b *AccountBuilder) WithType(value string) *AccountBuilder {
-	b.account.Type = value
+	if b == nil {
+		return b
+	}
+	b.account.Type = builder.SanitizeString(value)
 	return b
 }
 
 // WithNumber sets the Number
 func (b *AccountBuilder) WithNumber(number string) *AccountBuilder {
-	b.account.Number = number
+	if b == nil {
+		return b
+	}
+	b.account.Number = builder.SanitizeString(number)
 	return b
 }
 
 // WithBalance sets the Balance
 func (b *AccountBuilder) WithBalance(balance float64) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.Balance = balance
 	return b
 }
 
 // WithCurrency sets the Currency
 func (b *AccountBuilder) WithCurrency(currency string) *AccountBuilder {
-	b.account.Currency = currency
+	if b == nil {
+		return b
+	}
+	b.account.Currency = builder.SanitizeString(currency)
 	return b
 }
 
 // WithOpenDate sets the OpenDate
 func (b *AccountBuilder) WithOpenDate(openDate string) *AccountBuilder {
-	b.account.OpenDate = openDate
+	if b == nil {
+		return b
+	}
+	b.account.OpenDate = builder.SanitizeString(openDate)
 	return b
 }
 
 // WithStatus sets the Status
 func (b *AccountBuilder) WithStatus(status string) *AccountBuilder {
-	b.account.Status = status
+	if b == nil {
+		return b
+	}
+	b.account.Status = builder.SanitizeString(status)
 	return b
 }
 
 // WithTransactions sets the Transactions
 func (b *AccountBuilder) WithTransactions(transactions []any) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.Transactions = append(b.account.Transactions, transactions...)
 	return b
 }
 
 // WithInterestRate sets the InterestRate
 func (b *AccountBuilder) WithInterestRate(interestRate float64) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.InterestRate = interestRate
 	return b
 }
 
 // WithIsJoint sets the IsJoint
 func (b *AccountBuilder) WithIsJoint(isJoint bool) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.IsJoint = isJoint
 	return b
 }
 
 // WithCoOwners sets the CoOwners
 func (b *AccountBuilder) WithCoOwners(coOwners []any) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.CoOwners = append(b.account.CoOwners, coOwners...)
 	return b
 }
 
 // WithOverdraftLimit sets the OverdraftLimit
 func (b *AccountBuilder) WithOverdraftLimit(overdraftLimit float64) *AccountBuilder {
+	if b == nil {
+		return b
+	}
 	b.account.OverdraftLimit = overdraftLimit
 	return b
 }
@@ -130,19 +167,26 @@ func (b *AccountBuilder) BuildPtr() *models.Account {
 
 // BuildAndValidate builds the Account and validates it
 func (b *AccountBuilder) BuildAndValidate() (*models.Account, error) {
+	if b == nil || b.account == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	account := b.account
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(account); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(account).(interface{ Validate() error }); ok {
+	if v, ok := any(account).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return account, err
+			return account, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -160,9 +204,23 @@ func (b *AccountBuilder) MustBuild() *models.Account {
 
 // Clone creates a deep copy of the builder
 func (b *AccountBuilder) Clone() *AccountBuilder {
-	clonedAccount := *b.account
-	return &AccountBuilder{
-		account: &clonedAccount,
-		validationFuncs: append([]func(*models.Account) error{}, b.validationFuncs...),
+	if b == nil || b.account == nil {
+		return NewAccountBuilder()
 	}
+
+	// Deep copy the struct
+	clonedAccount := *b.account
+
+	// Create new builder with cloned data
+	clonedBuilder := &AccountBuilder{
+		account: &clonedAccount,
+		validationFuncs: make([]func(*models.Account) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

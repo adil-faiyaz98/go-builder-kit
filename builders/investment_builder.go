@@ -2,7 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
+	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 )
 
 // InvestmentBuilder builds a Investment model
@@ -38,48 +39,72 @@ func NewInvestmentBuilderWithDefaults() *InvestmentBuilder {
 }
 // WithID sets the ID
 func (b *InvestmentBuilder) WithID(id string) *InvestmentBuilder {
-	b.investment.ID = id
+	if b == nil {
+		return b
+	}
+	b.investment.ID = builder.SanitizeString(id)
 	return b
 }
 
 // WithName sets the Name
 func (b *InvestmentBuilder) WithName(name string) *InvestmentBuilder {
-	b.investment.Name = name
+	if b == nil {
+		return b
+	}
+	b.investment.Name = builder.SanitizeString(name)
 	return b
 }
 
 // WithType sets the Type
 func (b *InvestmentBuilder) WithType(value string) *InvestmentBuilder {
-	b.investment.Type = value
+	if b == nil {
+		return b
+	}
+	b.investment.Type = builder.SanitizeString(value)
 	return b
 }
 
 // WithValue sets the Value
 func (b *InvestmentBuilder) WithValue(value float64) *InvestmentBuilder {
+	if b == nil {
+		return b
+	}
 	b.investment.Value = value
 	return b
 }
 
 // WithStartDate sets the StartDate
 func (b *InvestmentBuilder) WithStartDate(startDate string) *InvestmentBuilder {
-	b.investment.StartDate = startDate
+	if b == nil {
+		return b
+	}
+	b.investment.StartDate = builder.SanitizeString(startDate)
 	return b
 }
 
 // WithEndDate sets the EndDate
 func (b *InvestmentBuilder) WithEndDate(endDate string) *InvestmentBuilder {
-	b.investment.EndDate = endDate
+	if b == nil {
+		return b
+	}
+	b.investment.EndDate = builder.SanitizeString(endDate)
 	return b
 }
 
 // WithRisk sets the Risk
 func (b *InvestmentBuilder) WithRisk(risk string) *InvestmentBuilder {
-	b.investment.Risk = risk
+	if b == nil {
+		return b
+	}
+	b.investment.Risk = builder.SanitizeString(risk)
 	return b
 }
 
 // WithPortfolio sets the Portfolio
 func (b *InvestmentBuilder) WithPortfolio(portfolio *PortfolioBuilder) *InvestmentBuilder {
+	if b == nil {
+		return b
+	}
 	// Handle nested pointer
 	b.investment.Portfolio = portfolio.BuildPtr()
 	return b
@@ -87,6 +112,9 @@ func (b *InvestmentBuilder) WithPortfolio(portfolio *PortfolioBuilder) *Investme
 
 // WithPerformance sets the Performance
 func (b *InvestmentBuilder) WithPerformance(performance []*PerformanceRecordBuilder) *InvestmentBuilder {
+	if b == nil {
+		return b
+	}
 	// Ensure the slice is initialized
 	if b.investment.Performance == nil {
 		b.investment.Performance = []*models.PerformanceRecord{}
@@ -104,13 +132,18 @@ func (b *InvestmentBuilder) WithPerformance(performance []*PerformanceRecordBuil
 
 // AddPerformance adds a single item to the Performance slice
 func (b *InvestmentBuilder) AddPerformance(performance *PerformanceRecordBuilder) *InvestmentBuilder {
-	// Ensure the slice is initialized
+	if b == nil {
+		return b
+	}
+	// Ensure the slice is initialized with capacity
 	if b.investment.Performance == nil {
-		b.investment.Performance = []*models.PerformanceRecord{}
+		b.investment.Performance = make([]*models.PerformanceRecord, 0, 4) // Pre-allocate capacity
 	}
 	// Handle nested slice element
-	builtValue := performance.Build().(*models.PerformanceRecord)
-	b.investment.Performance = append(b.investment.Performance, builtValue)
+	if performance != nil {
+		builtValue := performance.Build().(*models.PerformanceRecord)
+		b.investment.Performance = append(b.investment.Performance, builtValue)
+	}
 	return b
 }
 
@@ -132,19 +165,26 @@ func (b *InvestmentBuilder) BuildPtr() *models.Investment {
 
 // BuildAndValidate builds the Investment and validates it
 func (b *InvestmentBuilder) BuildAndValidate() (*models.Investment, error) {
+	if b == nil || b.investment == nil {
+		return nil, fmt.Errorf("builder is not properly initialized")
+	}
+
 	investment := b.investment
 
 	// Run custom validation functions
-	for _, validationFunc := range b.validationFuncs {
+	for i, validationFunc := range b.validationFuncs {
+		if validationFunc == nil {
+			continue // Skip nil validators
+		}
 		if err := validationFunc(investment); err != nil {
-			return nil, fmt.Errorf("custom validation failed: %w", err)
+			return nil, fmt.Errorf("custom validation failed at index %d: %w", i, err)
 		}
 	}
 
 	// Run model's Validate method if it exists
-	if v, ok := interface{}(investment).(interface{ Validate() error }); ok {
+	if v, ok := any(investment).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return investment, err
+			return investment, fmt.Errorf("model validation failed: %w", err)
 		}
 	}
 
@@ -162,9 +202,23 @@ func (b *InvestmentBuilder) MustBuild() *models.Investment {
 
 // Clone creates a deep copy of the builder
 func (b *InvestmentBuilder) Clone() *InvestmentBuilder {
-	clonedInvestment := *b.investment
-	return &InvestmentBuilder{
-		investment: &clonedInvestment,
-		validationFuncs: append([]func(*models.Investment) error{}, b.validationFuncs...),
+	if b == nil || b.investment == nil {
+		return NewInvestmentBuilder()
 	}
+
+	// Deep copy the struct
+	clonedInvestment := *b.investment
+
+	// Create new builder with cloned data
+	clonedBuilder := &InvestmentBuilder{
+		investment: &clonedInvestment,
+		validationFuncs: make([]func(*models.Investment) error, 0, len(b.validationFuncs)),
+	}
+
+	// Copy validation functions safely
+	if len(b.validationFuncs) > 0 {
+		clonedBuilder.validationFuncs = append(clonedBuilder.validationFuncs, b.validationFuncs...)
+	}
+
+	return clonedBuilder
 }

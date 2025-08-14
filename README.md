@@ -1,4 +1,4 @@
-# Go Builder Kit v2.1.3
+# Go Builder Kit v1.9.4
 
 [![Go Version](https://img.shields.io/badge/go-1.23+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -6,7 +6,7 @@
 ![Release Status](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/release.yml/badge.svg)
 [![Latest Version](https://img.shields.io/badge/version-v2.1.3-blue.svg)](https://github.com/adil-faiyaz98/go-builder-kit/releases/latest)
 
-> **⚠️ IMPORTANT: This repo shows v1.9.4 as latest tag for GitHub display, but you should use v2.1.3+**
+> **IMPORTANT: This repo shows v1.9.4 as latest tag for GitHub display, but you should use v2.1.3+**
 > 
 > ```bash
 > go get github.com/adil-faiyaz98/go-builder-kit/v2@latest

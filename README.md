@@ -72,10 +72,25 @@ Go Builder Kit v3.0 has been completely rewritten with security as the top prior
 
 ## Installation
 
-Install the library using `go get`:
+> **⚠️ Important Version Notice:**  
+> **Use v2.1.2+ for the latest stable version.** Older versions (v1.9.x and v2.0.x - v2.1.1) have been retracted due to incomplete features.
+
+Install the latest stable library using `go get`:
 
 ```bash
-go get github.com/adil-faiyaz98/go-builder-kit/v2
+go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
+```
+
+### Upgrading from v1.x
+
+If you're upgrading from v1.x versions, update your imports:
+
+```go
+// Old (v1.x)
+import "github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
+
+// New (v2.x)
+import "github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
 ```
 
 ## Quick Start

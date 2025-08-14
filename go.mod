@@ -4,6 +4,16 @@ go 1.23.0
 
 toolchain go1.24.0
 
+// Retract older versions - users should use v2.1.2+
+retract (
+	v2.1.1 // Pre-release version with incomplete features
+	v2.0.9 // Pre-release version with incomplete features
+	v2.0.5 // Pre-release version with incomplete features
+	v2.0.2 // Pre-release version with incomplete features
+	v2.0.1 // Pre-release version with incomplete features
+	v2.0.0 // Pre-release version with incomplete features
+)
+
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.38.0

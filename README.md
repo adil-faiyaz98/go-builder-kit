@@ -1,4 +1,4 @@
-# Go Builder Kit v1.9.4
+# Go Builder Kit v2.1.3
 
 [![Go Version](https://img.shields.io/badge/go-1.23+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)

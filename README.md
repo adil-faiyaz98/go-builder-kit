@@ -6,6 +6,7 @@
 ![Release Status](https://github.com/adil-faiyaz98/go-builder-kit/actions/workflows/release.yml/badge.svg)
 [![Latest Version](https://img.shields.io/badge/version-v2.1.3-blue.svg)](https://github.com/adil-faiyaz98/go-builder-kit/releases/latest)
 
+
 > **IMPORTANT: This repo shows v1.9.4 as latest tag for GitHub display, but you should use v2.1.3+**
 > 
 > ```bash
@@ -19,14 +20,14 @@
 > **Performance optimized and memory efficient**
 > **100% test coverage with comprehensive validation**
 
-## 📚 **Documentation & Links**
+## **Documentation & Links**
 
-- **📖 API Documentation**: https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit/v2
-- **🚀 Releases**: https://github.com/adil-faiyaz98/go-builder-kit/releases
-- **💻 Source Code**: https://github.com/adil-faiyaz98/go-builder-kit
-- **🐛 Issues**: https://github.com/adil-faiyaz98/go-builder-kit/issues
+- **API Documentation**: https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit/v2
+- **Releases**: https://github.com/adil-faiyaz98/go-builder-kit/releases
+- **Source Code**: https://github.com/adil-faiyaz98/go-builder-kit
+- **Issues**: https://github.com/adil-faiyaz98/go-builder-kit/issues
 
-> **⚠️ Note**: The pkg.go.dev link above is for the **v2** module. Do not use the v1 module link.
+> **⚠Note**: The pkg.go.dev link above is for the **v2** module. Do not use the v1 module link.
 
 A **secure**, **high-performance** Go library for implementing the Builder pattern with automatic code generation, comprehensive validation, and advanced features like caching and generics support.
 
@@ -88,7 +89,7 @@ Go Builder Kit v3.0 has been completely rewritten with security as the top prior
 
 ## Installation
 
-> **⚠️ Important Version Notice:**  
+> **Important Version Notice:**  
 > **Use v2.1.3 for the latest stable version.** This is the recommended version with all features and security updates.
 
 ### Quick Install
@@ -97,14 +98,7 @@ Go Builder Kit v3.0 has been completely rewritten with security as the top prior
 go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
 ```
 
-### Version Guide
 
-| Version Range | Status | Module Path | Recommendation |
-|--------------|--------|-------------|----------------|
-| **v2.1.3** | ✅ **Latest Stable** | `github.com/adil-faiyaz98/go-builder-kit/v2` | **Use This** |
-| v2.1.2 | ✅ Stable | `github.com/adil-faiyaz98/go-builder-kit/v2` | OK to use |
-| v2.0.0 - v2.1.1 | ❌ **Retracted** | `github.com/adil-faiyaz98/go-builder-kit/v2` | **Avoid** |
-| v1.9.x | ⚠️ **Legacy** | `github.com/adil-faiyaz98/go-builder-kit` | **Deprecated** |
 
 ### Upgrading from v1.x
 

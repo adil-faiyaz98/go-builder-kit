@@ -2,6 +2,7 @@
 
 [![Go Version](https://img.shields.io/badge/go-1.23+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/adil-faiyaz98/go-builder-kit)](https://github.com/adil-faiyaz98/go-builder-kit/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/adil-faiyaz98/go-builder-kit)](https://goreportcard.com/report/github.com/adil-faiyaz98/go-builder-kit)
 [![GoDoc](https://godoc.org/github.com/adil-faiyaz98/go-builder-kit?status.svg)](https://pkg.go.dev/github.com/adil-faiyaz98/go-builder-kit)
 

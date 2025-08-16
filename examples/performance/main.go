@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
+	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
 )
 
 // ComplexObject is a complex object that takes time to build

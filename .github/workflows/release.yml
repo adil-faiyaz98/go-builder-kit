@@ -85,7 +85,7 @@ jobs:
       - name: Update Go package proxy
         run: |
           # Force Go proxy to update by fetching the latest version
-          GOPROXY=proxy.golang.org go list -m github.com/adil-faiyaz98/go-builder-kit/v2@${{ steps.release_info.outputs.tag_name }} || true
+          GOPROXY=proxy.golang.org go list -m github.com/adil-faiyaz98/go-builder-kit@${{ steps.release_info.outputs.tag_name }} || true
 
   publish-docs:
     name: Publish Documentation
@@ -95,4 +95,4 @@ jobs:
     steps:
       - name: Trigger pkg.go.dev update
         run: |
-          curl -X POST "https://proxy.golang.org/github.com/adil-faiyaz98/go-builder-kit/v2/@v/${{ github.ref_name }}.info" || true
+          curl -X POST "https://proxy.golang.org/github.com/adil-faiyaz98/go-builder-kit/@v/${{ github.ref_name }}.info" || true

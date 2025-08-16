@@ -127,7 +127,7 @@ Benchmark Results (vs v1.x):
 ### From v1.x to v2.0
 
 1. **Update Go Version**: Ensure you're using Go 1.23+
-2. **Update Dependencies**: Run `go get -u github.com/adil-faiyaz98/go-builder-kit/v2`
+2. **Update Dependencies**: Run `go get -u github.com/adil-faiyaz98/go-builder-kit`
 3. **Update Type Usage**: Replace `interface{}` with `any`
 4. **Review String Handling**: String inputs are now automatically sanitized
 5. **Update Error Handling**: Enhanced error messages may require updates to error checking

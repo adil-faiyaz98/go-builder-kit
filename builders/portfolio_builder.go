@@ -2,8 +2,8 @@ package builders
 
 import (
 	"fmt"
-	"github.com/adil-faiyaz98/go-builder-kit/v2/models"
-	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
+	"github.com/adil-faiyaz98/go-builder-kit/models"
+	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
 )
 
 // PortfolioBuilder builds a Portfolio model

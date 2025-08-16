@@ -4,7 +4,7 @@ package generator
 const BuilderTemplate = `package {{ .PackageName }}
 
 import (
-{{ .ImportLines }}	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/builder"
+{{ .ImportLines }}	"github.com/adil-faiyaz98/go-builder-kit/pkg/builder"
 )
 
 // {{ .Struct.Name }}Builder builds a {{ .Struct.Name }} model

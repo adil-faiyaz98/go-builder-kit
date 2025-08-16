@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/adil-faiyaz98/go-builder-kit/v2/pkg/generator"
+	"github.com/adil-faiyaz98/go-builder-kit/pkg/generator"
 )
 
 func main() {

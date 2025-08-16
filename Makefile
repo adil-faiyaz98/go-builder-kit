@@ -7,7 +7,7 @@
 GO_VERSION := $(shell go version | cut -d' ' -f3)
 BINARY_NAME := builder-gen
 BINARY_PATH := ./cmd/builder-gen
-PACKAGE := github.com/adil-faiyaz98/go-builder-kit/v2
+PACKAGE := github.com/adil-faiyaz98/go-builder-kit
 LDFLAGS := -ldflags "-s -w"
 
 # Default target

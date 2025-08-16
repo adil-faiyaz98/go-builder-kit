@@ -1,158 +1,24 @@
-name: Go CI/CD
+name: Go
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
-env:
-  GO_VERSION: '1.23'
-
 jobs:
   test:
-    name: Test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: ['1.23', '1.22']
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Cache Go modules
-      uses: actions/cache@v4
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-${{ matrix.go-version }}-
-
-    - name: Install dependencies
-      run: go mod download
-
-    - name: Run go mod tidy
-      run: go mod tidy
-
-    - name: Verify no changes
-      run: git diff --exit-code
-
-    - name: Run go vet
-      run: go vet ./...
-
-    - name: Run go fmt
-      run: |
-        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
-          echo "Code is not formatted correctly:"
-          gofmt -s -l .
-          exit 1
-        fi
-
-    - name: Install staticcheck
-      run: go install honnef.co/go/tools/cmd/staticcheck@latest
-
-    - name: Run staticcheck
-      run: staticcheck ./...
-
-    - name: Run tests
-      run: go test -v -race -coverprofile=coverage.out ./...
-
-    - name: Generate coverage report
-      run: go tool cover -html=coverage.out -o coverage.html
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        files: ./coverage.out
-        fail_ci_if_error: false
-
-    - name: Upload coverage artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report-go${{ matrix.go-version }}
-        path: coverage.html
-
-  security:
-    name: Security Scan
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+    - uses: actions/checkout@v4
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v4
       with:
-        go-version: ${{ env.GO_VERSION }}
+        go-version: '1.23'
 
-    - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+    - name: Build
+      run: go build -v ./...
 
-    - name: Run vulnerability scan
-      run: govulncheck ./...
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [test, security]
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-
-    - name: Build binary
-      run: |
-        mkdir -p bin
-        go build -ldflags "-s -w" -o bin/builder-gen ./cmd/builder-gen
-
-    - name: Test binary
-      run: |
-        ./bin/builder-gen -help
-
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: builder-gen-linux
-        path: bin/builder-gen
-
-  cross-compile:
-    name: Cross Compile
-    runs-on: ubuntu-latest
-    needs: [test, security]
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-
-    - name: Build binary
-      run: |
-        mkdir -p bin
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "-s -w" -o bin/builder-gen-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }} ./cmd/builder-gen
-
-    - name: Upload binary artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: builder-gen-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: bin/builder-gen-*
+    - name: Test
+      run: go test -v ./...

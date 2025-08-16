@@ -1,7 +1,7 @@
 package builders_test
 
 import (
-	"github.com/adil-faiyaz98/go-builder-kit/v2/builders"
+	"github.com/adil-faiyaz98/go-builder-kit/builders"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

@@ -1,22 +1,6 @@
-module github.com/adil-faiyaz98/go-builder-kit/v2
+module github.com/adil-faiyaz98/go-builder-kit
 
 go 1.23.0
-
-toolchain go1.24.0
-
-// This repository is tagged as v1.10.0 for GitHub display purposes,
-// but the actual module is v2. Users should install the v2 module:
-// go get github.com/adil-faiyaz98/go-builder-kit/v2@latest
-
-// Retract older versions - users should use v2.1.3+
-retract (
-	v2.1.1 // Pre-release version with incomplete features
-	v2.0.9 // Pre-release version with incomplete features
-	v2.0.5 // Pre-release version with incomplete features
-	v2.0.2 // Pre-release version with incomplete features
-	v2.0.1 // Pre-release version with incomplete features
-	v2.0.0 // Pre-release version with incomplete features
-)
 
 require (
 	github.com/onsi/ginkgo/v2 v2.23.4
